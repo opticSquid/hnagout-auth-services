@@ -1,0 +1,25 @@
+spring:
+  profiles:
+    active: home
+  application:
+    name: auth-service
+  datasource:
+    driverClassName: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+eureka:
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    instance-id: ${spring.cloud.client.hostname}:${spring.application.name}:${spring.application.instance_id:${random.value}}
+server:
+  error:
+    include-stacktrace: never
+logging:
+  level:
+    web: error
+jwt:
+  accessSecret: Q1RRJrCCVxiJoNl6BvSvQFSJCvmL3s1DcqGmKkPraiWzq2uvglAScz4KW0HP/OrxXAID6cI+REt4pTYApvOARTcXf4Y3nAji9TnnLFApJEnGFKqdhr8KXvV+g0DymCXGYUZOqr4abUDzsovqY9qh56bcq2xr9uEhmaepMFPfYI8=
+  refreshSecret: /mppYm9KeuvvxXTE5VsoVAMOg6D3B49zIAPKJUUxY5ohFrGEGkvkfZR40C5UJDqS+kTHqV1uqzwZ1oWF+kAun/2y794yDVyJznmoFCgz9j6h40ctZ7QWvNNeBpVOfZFlCu9Evy5dsRYmHHB0C8hRfhz+/Wuwki8qQP3+Ke1jLeU=
