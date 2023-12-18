@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/auth
+    username: postgres
+    password: PkNLm@#2357
+  jpa:
+    properties:
+      hibernate:
+        "[format_sql]": true
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+server:
+  port: 0
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+logging:
+  level:
+    web: trace
+    "[com.hangout.core]": trace

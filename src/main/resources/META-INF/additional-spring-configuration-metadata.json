@@ -1,0 +1,14 @@
+{
+  "properties": [
+    {
+      "name": "jwt.accessSecret",
+      "type": "java.lang.String",
+      "description": "'jwt.accessSecret' defines the secret signing key for the jwt access tokens to be generated"
+    },
+    {
+      "name": "jwt.refreshSecret",
+      "type": "java.lang.String",
+      "description": "'jwt.refreshSecret' defines the secret signing key for the jwt refresh tokens to be generated"
+    }
+  ]
+}
