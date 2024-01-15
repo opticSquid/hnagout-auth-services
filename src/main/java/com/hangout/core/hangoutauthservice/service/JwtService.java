@@ -4,6 +4,7 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +41,9 @@ public class JwtService {
 	public String generateToken(User userDetails, String typeOfToken) {
 		Map<String, Object> extraClaims = new HashMap<>();
 		extraClaims.put("name", userDetails.getName());
-		if (typeOfToken == "access") {
+		if (Objects.equals(typeOfToken, "access")) {
 			return generateJWT(extraClaims, userDetails, true);
-		} else if (typeOfToken == "refresh") {
+		} else if (Objects.equals(typeOfToken, "refresh")) {
 			return generateJWT(extraClaims, userDetails, false);
 		} else {
 			return null;
@@ -63,7 +64,7 @@ public class JwtService {
 	public String checkIfTokenValid(String token, String tokenType) {
 		System.out.println("Incoming token: " + token);
 		try {
-			if (tokenType == "access") {
+			if (Objects.equals(tokenType, "access")) {
 				final String userName = extractUsername(token, true);
 				System.out.println("extracted email: " + userName);
 				User user = userRepo.findByEmail(userName).orElse(null);
@@ -73,7 +74,7 @@ public class JwtService {
 				} else {
 					return null;
 				}
-			} else if (tokenType == "refresh") {
+			} else if (Objects.equals(tokenType, "refresh")) {
 				final String userName = extractUsername(token, false);
 				System.out.println("extracted email: " + userName);
 				User user = userRepo.findByEmail(userName).orElse(null);

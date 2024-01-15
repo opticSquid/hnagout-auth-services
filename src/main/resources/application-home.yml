@@ -12,6 +12,10 @@ spring:
     show-sql: true
   application:
     instance-id: ${random.value}
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: my-group-id
 eureka:
   instance:
     instance-id: ${spring.application.name}:${spring.application.instance-id}
@@ -25,7 +29,8 @@ eureka:
 logging:
   level:
     web: debug
-    "[com.hangout.core]": trace
+    "org.springframework.boot.security": trace
+    "[com.hangout.core]": info
     # traceID and spanId are predefined MDC keys - we want the logs to include them
   pattern:
     level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
