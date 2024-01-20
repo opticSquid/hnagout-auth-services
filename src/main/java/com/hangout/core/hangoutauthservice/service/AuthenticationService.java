@@ -1,14 +1,17 @@
 package com.hangout.core.hangoutauthservice.service;
 
+import com.hangout.core.hangoutauthservice.config.MessageProducer;
 import com.hangout.core.hangoutauthservice.dto.*;
 import com.hangout.core.hangoutauthservice.entity.Authorization;
 import com.hangout.core.hangoutauthservice.entity.Role;
 import com.hangout.core.hangoutauthservice.entity.User;
 import com.hangout.core.hangoutauthservice.exceptions.EmailOrPasswordWrong;
 import com.hangout.core.hangoutauthservice.exceptions.JwtNotValidException;
+import com.hangout.core.hangoutauthservice.exceptions.UserCouldNotBeRegisteredException;
 import com.hangout.core.hangoutauthservice.exceptions.UserNotFoundException;
 import com.hangout.core.hangoutauthservice.repository.UserNameProjection;
 import com.hangout.core.hangoutauthservice.repository.UserRepo;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,13 +33,32 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final MessageProducer messageProducer;
 
-    public AuthenticationResponse registerAsNonVerifiedUser(RegisterRequest request) {
+    public RegisterResponse registerAsNonVerifiedUser(RegisterRequest request) {
         User newUser = new User(request.name(), request.age(), request.gender(), request.email(), passwordEncoder.encode(request.password()), Role.USER, Authorization.USER, false, false, false, false);
-        repo.save(newUser);
-        String accessToken = jwtService.generateToken(newUser, "access");
-        String refreshToken = jwtService.generateToken(newUser, "refresh");
-        return new AuthenticationResponse(accessToken, refreshToken);
+        try {
+            repo.save(newUser);
+            messageProducer.sendMessage("new-user-registered", newUser.getEmail());
+            return new RegisterResponse("An email has been sent to " + request.email() + " please click the verification link to verify your account");
+        } catch (Exception ex) {
+            throw new UserCouldNotBeRegisteredException("The user could not be registered because an account already exists with this email: " + request.email());
+        }
+//        String accessToken = jwtService.generateToken(newUser, "access");
+//        String refreshToken = jwtService.generateToken(newUser, "refresh");
+        //        return new AuthenticationResponse(accessToken, refreshToken);
+    }
+
+    @Transactional
+    public void userVerified(NewVerifiedUserEvent verifiedUserEvent) {
+        Optional<User> unverifiedUserFromDB = repo.findByEmail(verifiedUserEvent.email());
+        if (unverifiedUserFromDB.isPresent()){
+            User toBeVerifiedUser = unverifiedUserFromDB.get();
+            toBeVerifiedUser.setIsEnabled(true);
+            repo.save(toBeVerifiedUser);
+        }else{
+            messageProducer.sendMessage("verification-status","failed, email: "+verifiedUserEvent.email());
+        }
     }
 
     public boolean changeAuthorizationToPV(String userId) {

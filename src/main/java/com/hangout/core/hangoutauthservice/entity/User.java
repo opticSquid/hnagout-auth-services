@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,8 +15,10 @@ import java.util.Collection;
 import java.util.Set;
 
 @Entity
+// Updates only the changed column instead of all columns
+@DynamicUpdate
 @Getter
-@Table(name = "_user")
+@Table(name = "hangout_user")
 @NoArgsConstructor
 public class User implements UserDetails {
     // Auto generated
@@ -37,6 +40,8 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
     @Setter
+    // column name had to be changed because authorization is a restricted keyword in postgresql
+    @Column(name = "authz")
     @Enumerated(EnumType.STRING)
     private Authorization authorization;
     // Access Control
