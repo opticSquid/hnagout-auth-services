@@ -10,13 +10,45 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-server:
-  port: 0
+  application:
+    instance-id: ${random.value}
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: springboot-group-servers
 eureka:
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance-id}
+    metadata-map:
+      metrics.path: /actuator/prometheus
+      health.path: /actuator/health
+      management.context-path: /actuator
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: ${EUREKA_SERVICE_URI:http://localhost:8761/eureka}
 logging:
   level:
-    web: trace
-    "[com.hangout.core]": trace
+    web: debug
+    "[com.hangout.core]": info
+    # traceID and spanId are predefined MDC keys - we want the logs to include them
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+
+# All traces should be sent to latency analysis tool
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  endpoints:
+    web:
+      exposure:
+        include: prometheus
+
+  # For Exemplars to work we need histogram buckets
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http:
+          server:
+            requests: true
+
