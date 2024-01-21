@@ -1,5 +1,7 @@
 package com.hangout.core.hangoutauthservice.config;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hangout.core.hangoutauthservice.dto.NewVerifiedUserEvent;
 import com.hangout.core.hangoutauthservice.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
@@ -10,9 +12,17 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class MessageConsumer {
     private final AuthenticationService authService;
-    @KafkaListener(topics = "new-verified-user", groupId = "my-group-id")
-    public void listen(NewVerifiedUserEvent event) {
-            authService.userVerified(event);
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @KafkaListener(topics = "new-verified-user", groupId = "springboot-group-servers")
+    public void listen(String event) {
+        try {
+            NewVerifiedUserEvent newVerifiedUserEvent = objectMapper.readValue(event, NewVerifiedUserEvent.class);
+            authService.userVerified(newVerifiedUserEvent);
+        } catch (JsonProcessingException ex) {
+            throw new RuntimeException("JSON string could not be converted to POJO");
+        }
+
     }
 
 }

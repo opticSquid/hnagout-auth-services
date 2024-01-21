@@ -1,5 +1,7 @@
 package com.hangout.core.hangoutauthservice.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hangout.core.hangoutauthservice.config.MessageProducer;
 import com.hangout.core.hangoutauthservice.dto.*;
 import com.hangout.core.hangoutauthservice.entity.Authorization;
@@ -34,12 +36,13 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final MessageProducer messageProducer;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public RegisterResponse registerAsNonVerifiedUser(RegisterRequest request) {
         User newUser = new User(request.name(), request.age(), request.gender(), request.email(), passwordEncoder.encode(request.password()), Role.USER, Authorization.USER, false, false, false, false);
         try {
             repo.save(newUser);
-            messageProducer.sendMessage("new-user-registered", newUser.getEmail());
+            messageProducer.sendMessage("new-user-registered", objectMapper.writeValueAsString(new NewUnverifiedUserEvent(newUser.getEmail())));
             return new RegisterResponse("An email has been sent to " + request.email() + " please click the verification link to verify your account");
         } catch (Exception ex) {
             throw new UserCouldNotBeRegisteredException("The user could not be registered because an account already exists with this email: " + request.email());
@@ -49,15 +52,25 @@ public class AuthenticationService {
         //        return new AuthenticationResponse(accessToken, refreshToken);
     }
 
+    /**
+     * This function is fired when kafka event is received Via Message Consumer
+     * @see com.hangout.core.hangoutauthservice.config.MessageConsumer
+     * @param verifiedUserEvent
+     */
     @Transactional
     public void userVerified(NewVerifiedUserEvent verifiedUserEvent) {
         Optional<User> unverifiedUserFromDB = repo.findByEmail(verifiedUserEvent.email());
-        if (unverifiedUserFromDB.isPresent()){
-            User toBeVerifiedUser = unverifiedUserFromDB.get();
-            toBeVerifiedUser.setIsEnabled(true);
-            repo.save(toBeVerifiedUser);
-        }else{
-            messageProducer.sendMessage("verification-status","failed, email: "+verifiedUserEvent.email());
+        try {
+            if (unverifiedUserFromDB.isPresent()) {
+                User toBeVerifiedUser = unverifiedUserFromDB.get();
+                toBeVerifiedUser.setIsEnabled(true);
+                repo.save(toBeVerifiedUser);
+                messageProducer.sendMessage("verification-status", objectMapper.writeValueAsString(new VerificationStatusEvent(verifiedUserEvent.email(), 200)));
+            } else {
+                messageProducer.sendMessage("verification-status", objectMapper.writeValueAsString(new VerificationStatusEvent(verifiedUserEvent.email(), 500)));
+            }
+        } catch (JsonProcessingException ex) {
+            throw new RuntimeException("POJO classes could not be converted to JSON");
         }
     }
 
