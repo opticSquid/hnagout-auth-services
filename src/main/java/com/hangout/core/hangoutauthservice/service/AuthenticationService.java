@@ -42,7 +42,7 @@ public class AuthenticationService {
         User newUser = new User(request.name(), request.age(), request.gender(), request.email(), passwordEncoder.encode(request.password()), Role.USER, Authorization.USER, false, false, false, false);
         try {
             repo.save(newUser);
-            messageProducer.sendMessage("new-user-registered", objectMapper.writeValueAsString(new NewUnverifiedUserEvent(newUser.getEmail())));
+            messageProducer.sendMessage("new-user-registered", objectMapper.writeValueAsString(new NewUnverifiedUserEvent(newUser.getName(), newUser.getEmail())));
             return new RegisterResponse("An email has been sent to " + request.email() + " please click the verification link to verify your account");
         } catch (Exception ex) {
             throw new UserCouldNotBeRegisteredException("The user could not be registered because an account already exists with this email: " + request.email());
