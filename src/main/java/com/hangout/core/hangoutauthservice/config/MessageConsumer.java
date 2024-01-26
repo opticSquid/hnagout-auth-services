@@ -14,7 +14,8 @@ public class MessageConsumer {
     private final AuthenticationService authService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @KafkaListener(topics = "new-verified-user", groupId = "springboot-group-servers")
+    // groupId is of the consumer-group that is producing this event
+    @KafkaListener(topics = "new-verified-user")
     public void listen(String event) {
         try {
             NewVerifiedUserEvent newVerifiedUserEvent = objectMapper.readValue(event, NewVerifiedUserEvent.class);
