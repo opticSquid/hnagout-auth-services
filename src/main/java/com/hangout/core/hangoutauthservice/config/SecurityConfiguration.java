@@ -21,16 +21,12 @@ public class SecurityConfiguration {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.cors(AbstractHttpConfigurer::disable).csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests((authorizationManagerRequestMatcherRegistry -> authorizationManagerRequestMatcherRegistry
-                                .requestMatchers("/auths/inner/**").hasRole(Role.INNER_SERVICE.name()) // Selectively permitted for users with role INNER_SERVICE with authentication
-                                .requestMatchers("/auths/authenticated/**").hasRole(Role.USER.name()) // Selectively permitted for users with role USER with authentication
-                                .requestMatchers("/auths/public/**").permitAll() // All requests are permitted
-                                .requestMatchers("/actuator/**").permitAll() // All requests are permitted
-                                .anyRequest().denyAll() // All other routes are denied
-        ))
-                .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider)
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.cors(AbstractHttpConfigurer::disable).csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests((authorizationManagerRequestMatcherRegistry -> authorizationManagerRequestMatcherRegistry.requestMatchers("/auths/inner/**").hasRole(Role.INNER_SERVICE.name()) // Selectively permitted for users with role INNER_SERVICE with authentication
+                .requestMatchers("/auths/authenticated/**").hasRole(Role.USER.name()) // Selectively permitted for users with role USER with authentication
+                .requestMatchers("/auths/public/**").permitAll() // All requests are permitted
+                .requestMatchers("/actuator/**").permitAll() // All requests are permitted
+                .anyRequest().denyAll() // All other routes are denied
+        )).sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).authenticationProvider(authenticationProvider).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }

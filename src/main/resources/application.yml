@@ -15,8 +15,8 @@ spring:
       enabled: ALWAYS
   mvc:
     view:
-      prefix: /WEB-INF/views/
-      suffix: .html
+      prefix: /WEB-INF/view/
+      suffix: .jsp
 eureka:
   client:
     fetch-registry: true
