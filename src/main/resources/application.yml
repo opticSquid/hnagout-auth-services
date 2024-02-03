@@ -13,6 +13,10 @@ spring:
   output:
     ansi:
       enabled: ALWAYS
+  mvc:
+    view:
+      prefix: /WEB-INF/views/
+      suffix: .html
 eureka:
   client:
     fetch-registry: true

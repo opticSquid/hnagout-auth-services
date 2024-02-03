@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 @Slf4j
 public class AuthenticationPublicController {
 	private final AuthenticationService authService;
-	private final MessageProducer messageProducer;
 
 	@PostMapping("/register")
 	public ResponseEntity<RegisterResponse> register(@RequestBody RegisterRequest request) {

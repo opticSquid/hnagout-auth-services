@@ -39,7 +39,7 @@ public class AuthenticationService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public RegisterResponse registerAsNonVerifiedUser(RegisterRequest request) {
-        User newUser = new User(request.name(), request.age(), request.gender(), request.email(), passwordEncoder.encode(request.password()), Role.USER, Authorization.USER, false, false, false, false);
+        User newUser = new User(request.name(), request.age(), request.gender(), request.email(), passwordEncoder.encode(request.password()), Role.USER, Authorization.USER, true, true, true, false);
         try {
             repo.save(newUser);
             messageProducer.sendMessage("new-user-registered", objectMapper.writeValueAsString(new NewUnverifiedUserEvent(newUser.getName(), newUser.getEmail())));
@@ -65,9 +65,9 @@ public class AuthenticationService {
                 User toBeVerifiedUser = unverifiedUserFromDB.get();
                 toBeVerifiedUser.setIsEnabled(true);
                 repo.save(toBeVerifiedUser);
-                messageProducer.sendMessage("verification-status", objectMapper.writeValueAsString(new VerificationStatusEvent(verifiedUserEvent.email(), 200)));
+                messageProducer.sendMessage("verification-status", objectMapper.writeValueAsString(new VerificationStatusEvent(toBeVerifiedUser.getEmail(), toBeVerifiedUser.getName() ,200)));
             } else {
-                messageProducer.sendMessage("verification-status", objectMapper.writeValueAsString(new VerificationStatusEvent(verifiedUserEvent.email(), 500)));
+                messageProducer.sendMessage("verification-status", objectMapper.writeValueAsString(new VerificationStatusEvent(verifiedUserEvent.email(), null,500)));
             }
         } catch (JsonProcessingException ex) {
             throw new RuntimeException("POJO classes could not be converted to JSON");
