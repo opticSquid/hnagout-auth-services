@@ -1,5 +1,7 @@
 server:
   port: 0
+  servlet:
+    context-path: /auths
 spring:
   profiles:
     active: home
@@ -17,10 +19,10 @@ spring:
     view:
       prefix: /WEB-INF/view/
       suffix: .jsp
-eureka:
-  client:
-    fetch-registry: true
-    register-with-eureka: true
+#eureka:
+#  client:
+#    fetch-registry: true
+#    register-with-eureka: true
 
 logging:
   level:

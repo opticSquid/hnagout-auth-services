@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 
 @RestController
-@RequestMapping("/auths/public")
+@RequestMapping("/public")
 @RequiredArgsConstructor
 @Slf4j
 public class UserVerificationPublicController {

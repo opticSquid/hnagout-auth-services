@@ -12,7 +12,7 @@ import com.hangout.core.hangoutauthservice.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/auths/public")
+@RequestMapping("/public")
 @RequiredArgsConstructor
 @Slf4j
 public class AuthenticationPublicController {
