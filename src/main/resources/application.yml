@@ -23,7 +23,6 @@ spring:
 #  client:
 #    fetch-registry: true
 #    register-with-eureka: true
-
 logging:
   level:
     web: error
