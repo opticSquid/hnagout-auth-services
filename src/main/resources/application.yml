@@ -1,22 +1,28 @@
+server:
+  port: 0
+  servlet:
+    context-path: /auths
 spring:
   profiles:
     active: home
   application:
-    name: auth-service
+    name: auth
   datasource:
     driverClassName: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
-eureka:
-  client:
-    fetch-registry: true
-    register-with-eureka: true
-  instance:
-    instance-id: ${spring.cloud.client.hostname}:${spring.application.name}:${spring.application.instance_id:${random.value}}
-server:
-  error:
-    include-stacktrace: never
+  output:
+    ansi:
+      enabled: ALWAYS
+  mvc:
+    view:
+      prefix: /WEB-INF/view/
+      suffix: .jsp
+#eureka:
+#  client:
+#    fetch-registry: true
+#    register-with-eureka: true
 logging:
   level:
     web: error
