@@ -1,7 +1,7 @@
 package com.hangout.core.controller;
 
-import org.apache.hc.core5.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,7 +31,6 @@ public class AuthenticationController {
 	public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request) {
 		return ResponseEntity.ok(authService.register(request));
 	}
-
 	@PostMapping("/authenticate")
 	public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request) {
 		return ResponseEntity.ok(authService.authenticate(request));
@@ -42,12 +41,12 @@ public class AuthenticationController {
 		try {
 			Boolean result = authService.changeRoleToBusinessOwner(userId);
 			if (result) {
-				return ResponseEntity.status(HttpStatus.SC_OK).body(result);
+				return ResponseEntity.status(HttpStatus.OK).body(result);
 			} else {
-				return ResponseEntity.status(HttpStatus.SC_BAD_REQUEST).body(result);
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
 			}
 		} catch (UserNotFoundException e) {
-			return ResponseEntity.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).body(false);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
 		}
 	}
 
@@ -55,9 +54,9 @@ public class AuthenticationController {
 	public ResponseEntity<ValidateResponse> validateJwt(@RequestBody ValidateRequest request) {
 		ValidateResponse user = authService.validateUser(request.token());
 		if (user.getMessage().equals("jwt expired") || user.getMessage().equals("the given jwt string is not valid")) {
-			return ResponseEntity.status(HttpStatus.SC_BAD_REQUEST).body(user);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(user);
 		} else {
-			return ResponseEntity.status(HttpStatus.SC_OK).body(user);
+			return ResponseEntity.status(HttpStatus.OK).body(user);
 		}
 	}
 
