@@ -1,44 +1,58 @@
 package com.hangout.core.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import lombok.RequiredArgsConstructor;
+import com.hangout.core.entity.Roles;
+import com.hangout.core.filter.JwtFilter;
+import com.hangout.core.service.UserDetailsServiceImpl;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfiguration {
-	private final JwtAuthenticationFilter jwtAuthenticationFilter;
-	private final AuthenticationProvider authenticationProvider;
+	@Autowired
+	private UserDetailsServiceImpl userDetailsService;
+	@Autowired
+	private JwtFilter jwtFilter;
+	@Autowired
+	PasswordEncoder passwordEncoder;
 
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http
-				.csrf(csrf -> {
-					try {
-						csrf
-								.disable()
-								.authorizeHttpRequests()
-								.requestMatchers("/users/auth/**", "/actuator/**")
-								.permitAll()
-								.anyRequest()
-								.authenticated();
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				})
-				.sessionManagement(management -> management
-						.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authenticationProvider(authenticationProvider)
-				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-		return http.build();
+		// @formatter:off
+		return http
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("v1/public/**").permitAll()
+                        .requestMatchers("v1/user/**").authenticated()
+                        .requestMatchers("v1/admin/**").hasRole(Roles.ADMIN.name())
+						.requestMatchers("api-docs/**","swagger-ui/**","actuator/**").permitAll()
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .build();
+		// @formatter:on
+	}
+
+	@Autowired
+	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+		auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
+	}
+
+	@Bean
+	AuthenticationManager authenticationManager(AuthenticationConfiguration auth) throws Exception {
+		return auth.getAuthenticationManager();
 	}
 }

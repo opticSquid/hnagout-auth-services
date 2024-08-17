@@ -9,6 +9,21 @@
       "name": "jwt.refreshSecret",
       "type": "java.lang.String",
       "description": "'jwt.refreshSecret' defines the secret signing key for the jwt refresh tokens to be generated"
+    },
+    {
+      "name": "spring.application.instance_id",
+      "type": "java.lang.String",
+      "description": "A random string that uniquely identifies a instance of the service"
+    },
+    {
+      "name": "jwt.keys.public",
+      "type": "java.lang.String",
+      "description": "Public key used to decode JWT token"
+    },
+    {
+      "name": "jwt.keys.private",
+      "type": "java.lang.String",
+      "description": "Private key used to encode JWT token"
     }
   ]
 }

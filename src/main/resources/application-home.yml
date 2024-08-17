@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/auth
+    url: jdbc:postgresql://localhost:5432/userDb
     username: postgres
     password: PkNLm@#2357
   jpa:
@@ -18,8 +18,10 @@ spring:
       port: 5500
       discovery:
         healthCheckPath: ${server.servlet.context-path}/actuator/health
-        healthCheckInterval: 15s
+        healthCheckInterval: 30s
         instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id}}
+        metadata:
+          app-type: security
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
@@ -27,9 +29,10 @@ spring:
 
 logging:
   level:
-    web: debug
-    security: debug
-    "[com.hangout.core]": info
+    web: error
+    sql: error
+    '[org.springframework.security]': error
+    '[com.hangout.core]': trace
     # traceID and spanId are predefined MDC keys - we want the logs to include them
   pattern:
     level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
@@ -51,5 +54,3 @@ management:
         http:
           server:
             requests: true
-
-

@@ -1,14 +1,18 @@
 package com.hangout.core.repository;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.hangout.core.entity.User;
 
-public interface UserRepo extends JpaRepository<User, String> {
-	Optional<User> findByEmail(String email);
+public interface UserRepo extends JpaRepository<User, UUID> {
+	User findByUserName(String username);
 
-	List<UserNameProjection> findByUserIdIn(List<String> userIds);
+	@Query(value = "delete from user_creds where user_name=:userName", nativeQuery = true)
+	@Modifying
+	void deleteByUserName(@Param("userName") String username);
 }
