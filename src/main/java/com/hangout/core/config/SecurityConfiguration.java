@@ -35,10 +35,11 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("v1/public/**").permitAll()
+						.requestMatchers("api-docs/**","swagger-ui/**").permitAll()
                         .requestMatchers("v1/user/**").authenticated()
                         .requestMatchers("v1/admin/**").hasRole(Roles.ADMIN.name())
-						.requestMatchers("api-docs/**","swagger-ui/**","actuator/**").permitAll()
-                        .anyRequest().authenticated())
+						// had to do this just to make actuator work
+                        .anyRequest().permitAll())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))

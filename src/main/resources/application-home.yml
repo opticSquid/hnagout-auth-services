@@ -29,7 +29,7 @@ spring:
 
 logging:
   level:
-    web: error
+    web: debug
     sql: error
     '[org.springframework.security]': error
     '[com.hangout.core]': trace
@@ -46,7 +46,8 @@ management:
     web:
       exposure:
         include: prometheus, health
-
+  security:
+    enabled: true
   # For Exemplars to work we need histogram buckets
   metrics:
     distribution:
