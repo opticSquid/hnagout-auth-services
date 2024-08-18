@@ -28,3 +28,8 @@ springdoc:
     path: /api-docs
   swagger-ui:
     path: /swagger-ui
+
+hangout:
+  kafka:
+    topic:
+      verification-mail: verification-email

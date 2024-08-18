@@ -1,6 +1,7 @@
 package com.hangout.core.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -22,6 +23,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     PasswordEncoder passwordEncoder;
     @Autowired
     KafkaTemplate<String, String> eventBus;
+    @Value("${hangout.kafka.topic.verification-mail}")
+    private String verificationEmailTopic;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -40,7 +43,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         User newUser = new User(user.username(), user.email(), passwordEncoder.encode(user.password()));
         userRepo.save(newUser);
         // produce an event in kafka to send verification email
-        eventBus.send("verification-email", "email", user.email());
+        eventBus.send(verificationEmailTopic, "email", user.email());
     }
 
     @Transactional

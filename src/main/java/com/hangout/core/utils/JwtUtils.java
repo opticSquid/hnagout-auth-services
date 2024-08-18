@@ -15,7 +15,7 @@ import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtUtils {
-    @Value("${jwt.secretKey.access}")
+    @Value("${hangout.jwt.secretKey.access}")
     private String SECRET_KEY;
 
     public String generateToken(String username) {
