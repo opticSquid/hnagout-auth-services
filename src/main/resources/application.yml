@@ -32,4 +32,4 @@ springdoc:
 hangout:
   kafka:
     topic:
-      verification-mail: verification-email
+      verification-mail: notification
