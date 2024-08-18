@@ -15,6 +15,11 @@ spring:
   output:
     ansi:
       enabled: ALWAYS
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+        
 logging:
   level:
     web: error

@@ -24,8 +24,6 @@ spring:
           app-type: security
   kafka:
     bootstrap-servers: localhost:9092
-    consumer:
-      group-id: auth-service-group-server
 
 logging:
   level:
