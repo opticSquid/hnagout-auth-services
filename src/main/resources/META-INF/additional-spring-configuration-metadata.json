@@ -16,14 +16,9 @@
       "description": "A random string that uniquely identifies a instance of the service"
     },
     {
-      "name": "jwt.keys.public",
+      "name": "jwt.secretKey.access",
       "type": "java.lang.String",
-      "description": "Public key used to decode JWT token"
-    },
-    {
-      "name": "jwt.keys.private",
-      "type": "java.lang.String",
-      "description": "Private key used to encode JWT token"
+      "description": "Signing secret key for issued access key jwt tokens"
     }
   ]
 }

@@ -25,6 +25,10 @@ spring:
   kafka:
     bootstrap-servers: localhost:9092
 
+jwt:
+  secretKey: 
+    access: TaK+HaV^uvCHEFsEVfypW#7g9^k*Z8$V
+
 logging:
   level:
     web: debug
