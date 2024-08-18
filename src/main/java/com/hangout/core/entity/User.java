@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 
+import org.hibernate.validator.constraints.Length;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,6 +17,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -26,14 +28,17 @@ import lombok.NonNull;
 @NoArgsConstructor
 public class User implements UserDetails {
 	@Id
-	@GeneratedValue(strategy = GenerationType.UUID)
-	private UUID userId;
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private Long userId;
 	@NonNull
 	@Column(unique = true)
 	private String userName;
 	@NonNull
+	@Column(unique = true)
+	@Email
 	private String email;
 	@NonNull
+	@Length(min = 8)
 	private String password;
 	@JsonIgnore
 	private Roles role;
