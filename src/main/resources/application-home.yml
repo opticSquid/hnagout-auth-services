@@ -18,7 +18,7 @@ spring:
       port: 5500
       discovery:
         healthCheckPath: ${server.servlet.context-path}/actuator/health
-        healthCheckInterval: 30s
+        healthCheckInterval: 60s
         instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id}}
         metadata:
           app-type: security

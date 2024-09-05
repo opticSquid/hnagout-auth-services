@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import com.hangout.core.entity.User;
 
-public interface UserRepo extends JpaRepository<User, UUID> {
+public interface UserRepo extends JpaRepository<User, Long> {
 	User findByUserName(String username);
 
 	@Query(value = "delete from user_creds where user_name=:userName", nativeQuery = true)

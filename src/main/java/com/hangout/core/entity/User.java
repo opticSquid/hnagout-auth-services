@@ -2,7 +2,6 @@ package com.hangout.core.entity;
 
 import java.util.Collection;
 import java.util.Set;
-import java.util.UUID;
 
 import org.hibernate.validator.constraints.Length;
 import org.springframework.security.core.GrantedAuthority;
