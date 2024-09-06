@@ -74,7 +74,8 @@ public class PublicControllerTest {
                     .perform(post("/v1/public/signup").contentType(MediaType.APPLICATION_JSON).content(
                             "{\"username\": \"" + userName
                                     + "\" ,\"email\": \"" + email + "\" , \"password\": \"" + password + "\"}"))
-                    .andExpect(status().isOk()).andExpect(content().contentType("text/plain;charset=UTF=8"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType("text/plain;charset=UTF-8"))
                     .andExpect(MockMvcResultMatchers.content().string("Verification mail sent"))
                     .andDo(print());
         } catch (Exception ex) {
