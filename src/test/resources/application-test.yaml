@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/userDb
+    username: postgres
+    password: PkNLm@#2357
+  jpa:
+    properties:
+      hibernate:
+        "[format_sql]": true
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  application:
+    instance_id: ${random.value}
+
+logging:
+  level:
+    web: debug
+    sql: error
+    '[org.springframework.security]': error
+    '[com.hangout.core]': trace
+
+hangout:
+  jwt:
+    secretKey: 
+      access: TaK+HaV^uvCHEFsEVfypW#7g9^k*Z8$V

@@ -42,10 +42,11 @@ public class PublicController {
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody ExistingUser user) {
+        // ! if you put this code is UserDetailsService class AUthenticationManager will
+        // ! have a circular dependency. So, let the code stay here
         try {
             String username = authenticationManager
-                    .authenticate(new UsernamePasswordAuthenticationToken(user.username(), user.password()))
-                    .getName();
+                    .authenticate(new UsernamePasswordAuthenticationToken(user.username(), user.password())).getName();
             String jwt = jwtUtils.generateToken(username);
             return new ResponseEntity<>(jwt, HttpStatus.OK);
         } catch (Exception e) {
