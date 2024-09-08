@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -27,16 +26,16 @@ import com.hangout.core.repository.UserRepo;
 
 @Testcontainers
 @SpringBootTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
+// @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 @ActiveProfiles("test")
 public class UserControllerTest {
     private MockMvc mockMvc;
     @Autowired
-    private WebApplicationContext context;
-    @Autowired
     private UserRepo userRepository;
     @Autowired
     PasswordEncoder passwordEncoder;
+    @Autowired
+    private WebApplicationContext context;
 
     @Container
     @ServiceConnection
