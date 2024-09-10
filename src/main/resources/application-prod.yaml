@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/userDb
+    url: jdbc:postgresql://${CLUSTER_URL}:5432/userDb
     username: postgres
     password: PkNLm@#2357
   jpa:
@@ -12,16 +12,16 @@ spring:
     show-sql: true
   application:
     instance_id: ${random.value}
-  cloud:
-    consul:
-      host: localhost
-      port: 5500
-      discovery:
-        healthCheckPath: ${server.servlet.context-path}/actuator/health
-        healthCheckInterval: 60s
-        instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id}}
-        metadata:
-          app-type: security
+#   cloud:
+#     consul:
+#       host: localhost
+#       port: 5500
+#       discovery:
+#         healthCheckPath: ${server.servlet.context-path}/actuator/health
+#         healthCheckInterval: 30s
+#         instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id}}
+#         metadata:
+#           app-type: security
   kafka:
     bootstrap-servers: localhost:9092
 

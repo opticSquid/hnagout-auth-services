@@ -1,5 +1,5 @@
 server:
-  port: 0
+  port: 5011
   servlet:
     context-path: /auths
 spring:
@@ -15,17 +15,21 @@ spring:
   output:
     ansi:
       enabled: ALWAYS
-  mvc:
-    view:
-      prefix: /WEB-INF/view/
-      suffix: .jsp
-#eureka:
-#  client:
-#    fetch-registry: true
-#    register-with-eureka: true
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+        
 logging:
   level:
     web: error
-jwt:
-  accessSecret: Q1RRJrCCVxiJoNl6BvSvQFSJCvmL3s1DcqGmKkPraiWzq2uvglAScz4KW0HP/OrxXAID6cI+REt4pTYApvOARTcXf4Y3nAji9TnnLFApJEnGFKqdhr8KXvV+g0DymCXGYUZOqr4abUDzsovqY9qh56bcq2xr9uEhmaepMFPfYI8=
-  refreshSecret: /mppYm9KeuvvxXTE5VsoVAMOg6D3B49zIAPKJUUxY5ohFrGEGkvkfZR40C5UJDqS+kTHqV1uqzwZ1oWF+kAun/2y794yDVyJznmoFCgz9j6h40ctZ7QWvNNeBpVOfZFlCu9Evy5dsRYmHHB0C8hRfhz+/Wuwki8qQP3+Ke1jLeU=
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui
+
+hangout:
+  kafka:
+    topic:
+      verification-mail: notification

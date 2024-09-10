@@ -9,6 +9,21 @@
       "name": "jwt.refreshSecret",
       "type": "java.lang.String",
       "description": "'jwt.refreshSecret' defines the secret signing key for the jwt refresh tokens to be generated"
+    },
+    {
+      "name": "spring.application.instance_id",
+      "type": "java.lang.String",
+      "description": "A random string that uniquely identifies a instance of the service"
+    },
+    {
+      "name": "hangout.jwt.secretKey.access",
+      "type": "java.lang.String",
+      "description": "Signing secret key for issued access key jwt tokens"
+    },
+    {
+      "name": "hangout.kafka.topic.verification-mail",
+      "type": "java.lang.String",
+      "description": "Topic to send events for newly registered user's email verification"
     }
   ]
 }
