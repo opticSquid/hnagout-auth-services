@@ -1,5 +1,7 @@
 package com.hangout.core.auth_service.service;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -28,10 +30,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepo.findByUserName(username);
-        if (user != null) {
-            return org.springframework.security.core.userdetails.User.builder().username(user.getUsername())
-                    .password(user.getPassword()).roles(user.getRole().name()).build();
+        Optional<User> user = userRepo.findByUserName(username);
+        if (user.isPresent()) {
+            return org.springframework.security.core.userdetails.User.builder().username(user.get().getUsername())
+                    .password(user.get().getPassword()).roles(user.get().getRole().name()).build();
         }
         throw new UsernameNotFoundException("User not found with username: " + username);
     }

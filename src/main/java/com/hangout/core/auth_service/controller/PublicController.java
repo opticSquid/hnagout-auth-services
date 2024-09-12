@@ -17,6 +17,7 @@ import com.hangout.core.auth_service.service.UserDetailsServiceImpl;
 
 import io.micrometer.observation.annotation.Observed;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -41,9 +42,10 @@ public class PublicController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody ExistingUser user) {
+    public ResponseEntity<AuthResponse> login(@RequestBody ExistingUser user, HttpServletRequest request) {
         try {
-            AuthResponse res = this.accessService.login(user);
+            String ip = request.getRemoteAddr();
+            AuthResponse res = this.accessService.login(user, ip);
             return new ResponseEntity<>(res, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(new AuthResponse(null, null), HttpStatus.BAD_REQUEST);
