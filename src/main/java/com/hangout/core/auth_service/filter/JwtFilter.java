@@ -2,7 +2,7 @@ package com.hangout.core.auth_service.filter;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,15 +20,16 @@ import com.hangout.core.auth_service.entity.Action;
 import com.hangout.core.auth_service.exceptions.UserNotFoundException;
 import com.hangout.core.auth_service.repository.AccessRecordRepo;
 import com.hangout.core.auth_service.repository.UserRepo;
-import com.hangout.core.auth_service.utils.AccessTokenUtil;
 import com.hangout.core.auth_service.utils.JwtUtil;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
+@Slf4j
 public class JwtFilter extends OncePerRequestFilter {
     @Autowired
     private UserDetailsService userDetailsService;
@@ -49,11 +50,15 @@ public class JwtFilter extends OncePerRequestFilter {
         // try to extract jwt token from headers
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
+            log.debug("extracted jwt:{}", jwt);
         }
         // if jwt token was found
         if (jwt != null) {
             // validate the jwt
             if (this.accessTokenUtil.validateToken(jwt)) {
+                // extract username from jwt
+                username = this.accessTokenUtil.getUsername(jwt);
+                log.debug("username extracted from jwt: {}", username);
                 UserDetails userDetails = null;
                 // try to get the userDetails from database
                 try {
@@ -81,11 +86,11 @@ public class JwtFilter extends OncePerRequestFilter {
                 if (!request.getRequestURI().contains("/auths/v1/user/heart-beat")) {
                     this.accessRecordRepo.save(new AccessRecord(userId, ip, jwt,
                             lastAccess.get().getAccessTokenIssueTime(), lastAccess.get().getRefreshToken(),
-                            lastAccess.get().getRefresTokenIssueTime(), LocalDateTime.now(), Action.ROUTE_ACCESS));
+                            lastAccess.get().getRefresTokenIssueTime(), new Date(), Action.ROUTE_ACCESS));
                 } else {
                     this.accessRecordRepo.save(new AccessRecord(userId, ip, jwt,
                             lastAccess.get().getAccessTokenIssueTime(), lastAccess.get().getRefreshToken(),
-                            lastAccess.get().getRefresTokenIssueTime(), LocalDateTime.now(), Action.HEART_BEAT));
+                            lastAccess.get().getRefresTokenIssueTime(), new Date(), Action.HEART_BEAT));
                 }
                 // setting the details in auth object
                 auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

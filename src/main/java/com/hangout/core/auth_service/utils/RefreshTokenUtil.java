@@ -2,6 +2,7 @@ package com.hangout.core.auth_service.utils;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,9 +35,9 @@ public class RefreshTokenUtil implements JwtUtil {
     }
 
     @Override
-    public LocalDateTime getIssuedAt(String token) {
+    public Date getIssuedAt(String token) {
         Date issueTime = this.extractAllClaims(token).getIssuedAt();
-        return issueTime.toInstant().atZone(ZoneOffset.UTC).toLocalDateTime();
+        return issueTime;
     }
 
     @Override

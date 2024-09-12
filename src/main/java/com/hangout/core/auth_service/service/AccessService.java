@@ -2,6 +2,8 @@ package com.hangout.core.auth_service.service;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -38,16 +40,15 @@ public class AccessService {
                 .authenticate(new UsernamePasswordAuthenticationToken(user.username(), user.password()));
         String username = auth.getName();
         String accessJwt = this.accessTokenUtil.generateToken(username);
-        LocalDateTime iatAccessToken = this.accessTokenUtil.getIssuedAt(accessJwt);
+        Date iatAccessToken = this.accessTokenUtil.getIssuedAt(accessJwt);
         String refreshJwt = this.refreshTokenUtil.generateToken(username);
-        LocalDateTime iatRefreshToken = this.refreshTokenUtil.getIssuedAt(refreshJwt);
+        Date iatRefreshToken = this.refreshTokenUtil.getIssuedAt(refreshJwt);
         // ? we are not checking if user exists or not here because earlier on we have
         // ? already checked that in authentication
         BigInteger userId = this.userRepo.findByUserName(username).get().getUserId();
         // saving login attempt as new record of access
         this.accessRecordRepo.save(
-                new AccessRecord(userId, ip, accessJwt, iatAccessToken, refreshJwt, iatRefreshToken,
-                        LocalDateTime.now(),
+                new AccessRecord(userId, ip, accessJwt, iatAccessToken, refreshJwt, iatRefreshToken, new Date(),
                         Action.LOGIN));
         return new AuthResponse(accessJwt, refreshJwt);
     }

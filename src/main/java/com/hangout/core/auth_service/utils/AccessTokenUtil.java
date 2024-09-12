@@ -2,6 +2,7 @@ package com.hangout.core.auth_service.utils;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,8 +15,10 @@ import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
+@Slf4j
 public class AccessTokenUtil implements JwtUtil {
     @Value("${hangout.jwt.secretKey.access}")
     private String ACCESS_SECRET_KEY;
@@ -29,15 +32,16 @@ public class AccessTokenUtil implements JwtUtil {
 
     @Override
     public Boolean validateToken(String token) {
+        log.info("Validating access token");
         Date expirationTime = this.extractAllClaims(token).getExpiration();
         // check if the expirtation is in past of current instant
         return !expirationTime.before(new Date());
     }
 
     @Override
-    public LocalDateTime getIssuedAt(String token) {
+    public Date getIssuedAt(String token) {
         Date issueTime = this.extractAllClaims(token).getIssuedAt();
-        return issueTime.toInstant().atZone(ZoneOffset.UTC).toLocalDateTime();
+        return issueTime;
     }
 
     @Override
