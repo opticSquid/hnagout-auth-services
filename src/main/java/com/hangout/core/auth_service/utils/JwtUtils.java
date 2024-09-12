@@ -16,45 +16,76 @@ import io.jsonwebtoken.security.Keys;
 @Component
 public class JwtUtils {
     @Value("${hangout.jwt.secretKey.access}")
-    private String SECRET_KEY;
+    private String ACCESS_SECRET_KEY;
+    @Value("${hangout.jwt.secretKey.refresh}")
+    private String REFRESH_SECRET_KEY;
 
-    public String generateToken(String username) {
+    public String generateAccessToken(String username) {
         Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, username);
+        SecretKey accessSecretKey = getSigningKey(ACCESS_SECRET_KEY);
+        // expiration is 5 minutes
+        return createToken(claims, username, 1000 * 60 * 5, accessSecretKey);
     }
 
-    public Boolean validateToken(String token) {
-        return !extractExpiration(token).before(new Date());
+    public Boolean validateAccessToken(String token) {
+        SecretKey accessSecretKey = getSigningKey(ACCESS_SECRET_KEY);
+        // ! also check if user exists from the username in token.
+        // ! it may happen that signing key is compromised but database is still intact
+        return !extractExpiration(token, accessSecretKey).before(new Date());
     }
 
-    public Date extractExpiration(String token) {
-        return extractAllClaims(token).getExpiration();
+    public String extractUserNameFromAccessToken(String token) {
+        SecretKey accessSecretKey = getSigningKey(ACCESS_SECRET_KEY);
+        return extractAllClaims(token, accessSecretKey).getSubject();
     }
 
-    public String extractUserName(String token) {
-        return extractAllClaims(token).getSubject();
+    public String generateRefreshToken(String username) {
+        Map<String, Object> claims = new HashMap<>();
+        SecretKey refreshSecretKey = getSigningKey(REFRESH_SECRET_KEY);
+        // expiration is 7 days
+        return createToken(claims, username, 1000 * 60 * 60 * 24 * 7, refreshSecretKey);
     }
 
-    private String createToken(Map<String, Object> claims, String subject) {
+    public Boolean validateRefreshToken(String token) {
+        SecretKey refreshSecretKey = getSigningKey(REFRESH_SECRET_KEY);
+        // ! also check if user exists from the username in token.
+        // ! it may happen that signing key is compromised but database is still intact
+        return !extractExpiration(token, refreshSecretKey).before(new Date());
+    }
+
+    public String extractUserNameFromRefreshToken(String token) {
+        SecretKey refreshSecretKey = getSigningKey(REFRESH_SECRET_KEY);
+        return extractAllClaims(token, refreshSecretKey).getSubject();
+    }
+
+    // ? 'long', not 'Long' is used for compatibility with int because access key
+    // ? expiration will fall in range of int
+    // ? but refresh key expiration may overflow int boundary
+    private String createToken(Map<String, Object> claims, String subject, long expiration, SecretKey singingKey) {
+        long currentTimeStamp = System.currentTimeMillis();
         return Jwts.builder()
                 .claims(claims)
                 .subject(subject)
                 .header().empty().add("typ", "JWT")
                 .and()
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 5))
-                .signWith(getSigningKey())
+                .issuedAt(new Date(currentTimeStamp))
+                .expiration(new Date(currentTimeStamp + expiration))
+                .signWith(singingKey)
                 .compact();
 
     }
 
-    private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+    private SecretKey getSigningKey(String key) {
+        return Keys.hmacShaKeyFor(key.getBytes());
     }
 
-    private Claims extractAllClaims(String token) {
+    private Date extractExpiration(String token, SecretKey singingKey) {
+        return extractAllClaims(token, singingKey).getExpiration();
+    }
+
+    private Claims extractAllClaims(String token, SecretKey singingKey) {
         return Jwts.parser()
-                .verifyWith(getSigningKey())
+                .verifyWith(singingKey)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();

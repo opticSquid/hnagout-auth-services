@@ -9,7 +9,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.hangout.core.auth_service.dto.NewUser;
+import com.hangout.core.auth_service.dto.request.NewUser;
 import com.hangout.core.auth_service.entity.User;
 import com.hangout.core.auth_service.repository.UserRepo;
 
