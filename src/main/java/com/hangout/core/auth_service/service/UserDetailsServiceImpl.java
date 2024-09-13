@@ -4,6 +4,8 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -11,10 +13,12 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 
 import com.hangout.core.auth_service.dto.event.AccountActivationMailEvent;
 import com.hangout.core.auth_service.dto.event.VerifyAccountEvent;
 import com.hangout.core.auth_service.dto.request.NewUser;
+import com.hangout.core.auth_service.dto.request.TokenVerificationRequest;
 import com.hangout.core.auth_service.dto.response.AccountVerficationResponse;
 import com.hangout.core.auth_service.entity.User;
 import com.hangout.core.auth_service.exceptions.JwtNotValidException;
@@ -22,8 +26,10 @@ import com.hangout.core.auth_service.exceptions.UserNotFoundException;
 import com.hangout.core.auth_service.repository.UserRepo;
 
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class UserDetailsServiceImpl implements UserDetailsService {
     @Autowired
     private UserRepo userRepo;
@@ -56,20 +62,32 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         eventBus.send(verificationEmailTopic, new VerifyAccountEvent(newUser.getUsername(), newUser.getEmail()));
     }
 
+    @Transactional
     public String verifyToken(String token) {
         try {
-            AccountVerficationResponse res = restClient.get().uri(notificationService + "/verify-token").retrieve()
-                    .body(AccountVerficationResponse.class);
-            if (res != null && res.isVerified()) {
-                this.userRepo.activateAccount(res.email());
-                Optional<User> user = this.userRepo.findByEmail(res.email());
+            ResponseEntity<AccountVerficationResponse> res = restClient
+                    .post()
+                    .uri(notificationService + "/verify-token")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(new TokenVerificationRequest(token))
+                    .retrieve()
+                    .toEntity(AccountVerficationResponse.class);
+            log.debug("response recieved from notification service: {}", res);
+            if (res != null && res.getBody().isVerified()) {
+                log.debug("Token is verified: {}", res.getBody());
+                log.debug("activating account");
+                this.userRepo.activateAccount(res.getBody().email());
+                Optional<User> user = this.userRepo.findByEmail(res.getBody().email());
                 // produce an event in kafka to send account activation email
+                log.debug("sending account activation mail");
                 eventBus.send(activationEmailTopic,
                         new AccountActivationMailEvent(user.get().getUsername(), user.get().getEmail(), 200));
                 return "account verified";
             } else {
                 throw new JwtNotValidException("verification url is not valid");
             }
+        } catch (RestClientResponseException ex) {
+            throw new JwtNotValidException("verification url is not valid");
         } catch (Exception ex) {
             throw new UserNotFoundException("Account activation failed");
         }
