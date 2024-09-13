@@ -1,8 +1,6 @@
 package com.hangout.core.auth_service.service;
 
 import java.math.BigInteger;
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;

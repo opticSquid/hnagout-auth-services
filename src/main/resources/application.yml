@@ -18,7 +18,7 @@ spring:
   kafka:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
         
 logging:
   level:
@@ -32,4 +32,5 @@ springdoc:
 hangout:
   kafka:
     topic:
-      verification-mail: notification
+      verification-mail: account-verification
+      activation-mail: account-activation
