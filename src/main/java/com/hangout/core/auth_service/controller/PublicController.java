@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.hangout.core.auth_service.dto.request.ExistingUser;
 import com.hangout.core.auth_service.dto.request.NewUser;
+import com.hangout.core.auth_service.dto.request.RenewToken;
 import com.hangout.core.auth_service.dto.response.AuthResponse;
 import com.hangout.core.auth_service.dto.response.DefaultResponse;
 import com.hangout.core.auth_service.service.AccessService;
@@ -47,7 +48,7 @@ public class PublicController {
     }
 
     @GetMapping("/verify")
-    public String getMethodName(@RequestParam String token) {
+    public String verifyAccount(@RequestParam String token) {
         log.debug("token received for verification: {}", token);
         return this.userDetailsService.verifyToken(token);
     }
@@ -62,4 +63,10 @@ public class PublicController {
             return new ResponseEntity<>(new AuthResponse(null, null), HttpStatus.BAD_REQUEST);
         }
     }
+
+    @PostMapping("/renew")
+    public AuthResponse postMethodName(@RequestBody RenewToken tokenReq, HttpServletRequest req) {
+        return this.accessService.renewToken(tokenReq.token(), req.getRemoteAddr());
+    }
+
 }
