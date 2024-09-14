@@ -6,12 +6,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.hangout.core.auth_service.dto.response.DefaultResponse;
+import com.hangout.core.auth_service.service.AccessService;
 import com.hangout.core.auth_service.service.UserDetailsServiceImpl;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
@@ -21,6 +25,24 @@ import lombok.extern.slf4j.Slf4j;
 public class UserController {
 	@Autowired
 	private UserDetailsServiceImpl userDetailsService;
+	@Autowired
+	private AccessService accessService;
+
+	@GetMapping("/validate")
+	public ResponseEntity<String> validateAccessToken() {
+		// we really don't need to do anything here because
+		// before the request reaches here jwt token is already validated by jwt filter
+		// and access is recorded in db
+		// if the request reaches till here this means everything is ok
+		// cheeky right? 😜
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
+	@DeleteMapping("/logout")
+	public ResponseEntity<DefaultResponse> logout(HttpServletRequest req) {
+		Authentication user = getAuthenticatedUser();
+		return new ResponseEntity<>(this.accessService.logout(user.getName(), req.getRemoteAddr()), HttpStatus.OK);
+	}
 
 	@DeleteMapping
 	public ResponseEntity<String> deleteUser() {
