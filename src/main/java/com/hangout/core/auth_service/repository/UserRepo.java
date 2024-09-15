@@ -13,7 +13,13 @@ import com.hangout.core.auth_service.entity.User;
 public interface UserRepo extends JpaRepository<User, BigInteger> {
 	Optional<User> findByUserName(String username);
 
-	@Query(value = "delete from user_creds where user_name=:userName", nativeQuery = true)
+	Optional<User> findByEmail(String email);
+
 	@Modifying
+	@Query(value = "update user_creds set enabled = true where email = :email", nativeQuery = true)
+	void activateAccount(@Param("email") String email);
+
+	@Modifying
+	@Query(value = "delete from user_creds where user_name = :userName", nativeQuery = true)
 	void deleteByUserName(@Param("userName") String username);
 }

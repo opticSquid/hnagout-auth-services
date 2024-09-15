@@ -18,12 +18,27 @@
     {
       "name": "hangout.jwt.secretKey.access",
       "type": "java.lang.String",
-      "description": "Signing secret key for issued access key jwt tokens"
+      "description": "Signing secret key for issued access tokens"
+    },
+    {
+      "name": "hangout.jwt.secretKey.refresh",
+      "type": "java.lang.String",
+      "description": "Signing secret key for issued refresh tokens"
     },
     {
       "name": "hangout.kafka.topic.verification-mail",
       "type": "java.lang.String",
       "description": "Topic to send events for newly registered user's email verification"
+    },
+    {
+      "name": "hangout.notification-service.url",
+      "type": "java.lang.String",
+      "description": "URL of notification service it is used to check jwt token validity when verification link is clicked"
+    },
+    {
+      "name": "hangout.kafka.topic.activation-mail",
+      "type": "java.lang.String",
+      "description": "Topic to send events for account activation mail"
     }
   ]
 }
