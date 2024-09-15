@@ -39,8 +39,8 @@ public class AccessTokenUtil implements JwtUtil {
     }
 
     @Override
-    public Date getIssuedAt(String token) {
-        Date issueTime = this.extractAllClaims(token).getIssuedAt();
+    public Date getExpiresAt(String token) {
+        Date issueTime = this.extractAllClaims(token).getExpiration();
         return issueTime;
     }
 

@@ -7,7 +7,7 @@ public interface JwtUtil {
 
     Boolean validateToken(String token);
 
-    Date getIssuedAt(String token);
+    Date getExpiresAt(String token);
 
     String getUsername(String token);
 }

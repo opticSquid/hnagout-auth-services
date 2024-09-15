@@ -83,15 +83,9 @@ public class JwtFilter extends OncePerRequestFilter {
                 // have created a access record in db.
                 // assume the last access's access and refresh token is valid
                 // becuase it was already verified earlier
-                if (!request.getRequestURI().contains("/auths/v1/user/heart-beat")) {
-                    this.accessRecordRepo.save(new AccessRecord(userId, ip, jwt,
-                            lastAccess.get().getAccessTokenIssueTime(), lastAccess.get().getRefreshToken(),
-                            lastAccess.get().getRefresTokenIssueTime(), new Date(), Action.ROUTE_ACCESS));
-                } else {
-                    this.accessRecordRepo.save(new AccessRecord(userId, ip, jwt,
-                            lastAccess.get().getAccessTokenIssueTime(), lastAccess.get().getRefreshToken(),
-                            lastAccess.get().getRefresTokenIssueTime(), new Date(), Action.HEART_BEAT));
-                }
+                this.accessRecordRepo.save(new AccessRecord(userId, ip, jwt,
+                        lastAccess.get().getAccessTokenExpiryTime(), lastAccess.get().getRefreshToken(),
+                        lastAccess.get().getRefreshTokenExpiryTime(), new Date(), Action.ROUTE_ACCESS));
                 // setting the details in auth object
                 auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 // setting security context for the current user
