@@ -45,14 +45,15 @@ public class UserController {
 	}
 
 	@DeleteMapping
-	public ResponseEntity<String> deleteUser() {
+	public ResponseEntity<DefaultResponse> deleteUser() {
 		try {
 			String userName = getAuthenticatedUser().getName();
 			this.userDetailsService.deleteUser(userName);
-			return new ResponseEntity<>("User with username: " + userName + " deleted", HttpStatus.OK);
+			return new ResponseEntity<>(new DefaultResponse("User with username: " + userName + " deleted"),
+					HttpStatus.OK);
 		} catch (Exception e) {
 			log.error("Exception: {}", e.getCause());
-			return new ResponseEntity<>("User could not be deleted", HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>(new DefaultResponse("User could not be deleted"), HttpStatus.BAD_REQUEST);
 		}
 	}
 

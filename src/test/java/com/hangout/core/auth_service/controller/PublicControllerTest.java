@@ -6,11 +6,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.Date;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
@@ -28,8 +33,12 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+import com.hangout.core.auth_service.entity.AccessRecord;
+import com.hangout.core.auth_service.entity.Action;
 import com.hangout.core.auth_service.entity.User;
+import com.hangout.core.auth_service.repository.AccessRecordRepo;
 import com.hangout.core.auth_service.repository.UserRepo;
+import com.hangout.core.auth_service.utils.JwtUtil;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -43,9 +52,17 @@ public class PublicControllerTest {
     @Autowired
     private UserRepo userRepository;
     @Autowired
+    private AccessRecordRepo accessRepo;
+    @Autowired
     PasswordEncoder passwordEncoder;
     @Autowired
     private WebApplicationContext context;
+    @Autowired
+    @Qualifier("accessTokenUtil")
+    private JwtUtil accessTokenUtil;
+    @Autowired
+    @Qualifier("refreshTokenUtil")
+    private JwtUtil refreshTokenUtil;
 
     @Container
     @ServiceConnection
@@ -68,6 +85,7 @@ public class PublicControllerTest {
     @Test
     @Transactional
     void testSignup_validUserCredentials() {
+        log.info("Starting test signup");
         String userName = "test";
         String email = "test@test.com";
         String password = "test1234567890";
@@ -77,8 +95,8 @@ public class PublicControllerTest {
                             "{\"username\": \"" + userName
                                     + "\" ,\"email\": \"" + email + "\" , \"password\": \"" + password + "\"}"))
                     .andExpect(status().isOk())
-                    .andExpect(content().contentType("text/plain;charset=UTF-8"))
-                    .andExpect(MockMvcResultMatchers.content().string("Verification mail sent"))
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Verification mail sent"))
                     .andDo(print());
         } catch (Exception ex) {
             log.error("Exception occoured", ex);
@@ -89,7 +107,8 @@ public class PublicControllerTest {
 
     @Test
     @Transactional
-    void testLogin_usernamePasswordCorrect() throws Exception {
+    void testLogin_usernamePasswordCorrect_notLoggedInBefore() throws Exception {
+        log.info("starting test login correct username password");
         String userName = "testUser";
         String email = "test@test.com";
         String password = "a1@bcdefgh456";
@@ -99,7 +118,10 @@ public class PublicControllerTest {
                     .perform(post("/v1/public/login").contentType(MediaType.APPLICATION_JSON)
                             .characterEncoding(Charset.defaultCharset())
                             .content("{\"username\": \"" + userName + "\", \"password\":\"" + password + "\" }"))
-                    .andExpect(status().isOk()).andExpect(content().contentType("text/plain;charset=UTF-8"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.accessToken").isString())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.refreshToken").isString())
                     .andDo(print());
         } finally {
             cleanUpUser(userName);
@@ -108,7 +130,8 @@ public class PublicControllerTest {
 
     @Test
     @Transactional
-    void testLogin_usernamePasswordWrong() {
+    void testLogin_usernamePasswordWrong_notLoggedInBefore() throws Exception {
+        log.info("starting test login wrong username password");
         String userName = "testUser";
         String email = "test@test.com";
         String password = "a1@bcdefgh456";
@@ -118,11 +141,40 @@ public class PublicControllerTest {
                     .perform(post("/v1/public/login").contentType(MediaType.APPLICATION_JSON)
                             .characterEncoding(Charset.defaultCharset())
                             .content("{\"username\": \"testUser3\",\"password\": \"a1@bcdefgh4567\"}"))
-                    .andExpect(status().is4xxClientError()).andExpect(content().contentType("text/plain;charset=UTF-8"))
+                    .andExpect(status().is4xxClientError())
+                    .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.title").value("Username or password is wrong"))
                     .andDo(print());
-        } catch (Exception ex) {
-            log.error("Exception occoured during execution of testLogin_usernamePasswordWrong", ex.getMessage());
         } finally {
+            cleanUpUser(userName);
+        }
+    }
+
+    @Test
+    @Transactional
+    void testRenewToken_validRefToken_accTokenExpired() throws Exception {
+        log.info("starting test renew token");
+        String userName = "testUser";
+        String email = "test@test.com";
+        String password = "a1@bcdefgh456";
+        String accToken = this.accessTokenUtil.generateToken(userName);
+        ZonedDateTime accTokenExpiry = this.accessTokenUtil.getExpiresAt(accToken).toInstant().atZone(ZoneOffset.UTC);
+        String refToken = this.refreshTokenUtil.generateToken(userName);
+        ZonedDateTime refTokenExpiry = this.refreshTokenUtil.getExpiresAt(refToken).toInstant().atZone(ZoneOffset.UTC);
+        User user = setupUser(userName, email, password);
+        addLoginRecord(user.getUserId(), "127.0.0.1", accToken, accTokenExpiry.plusSeconds(30), refToken,
+                refTokenExpiry);
+        try {
+            this.mockMvc.perform(post("/v1/public/renew").contentType(MediaType.APPLICATION_JSON)
+                    .characterEncoding(Charset.defaultCharset())
+                    .content("{ \"token\": \"" + refToken + "\"}"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.accessToken").value(accToken))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.refreshToken").value(refToken))
+                    .andDo(print());
+        } finally {
+            deleteAccesRecords();
             cleanUpUser(userName);
         }
     }
@@ -134,10 +186,22 @@ public class PublicControllerTest {
      * @param email
      * @param password
      */
-    private void setupUser(String userName, String email, String password) {
+    private User setupUser(String userName, String email, String password) {
         User user = new User(userName, email, passwordEncoder.encode(password));
         user.setEnabled(true);
         user = this.userRepository.save(user);
+        log.debug("[TEST] user record added to db: {}", user);
+        return user;
+    }
+
+    private AccessRecord addLoginRecord(BigInteger userId, String ipAddress, String accToken,
+            ZonedDateTime accTokenExpiry,
+            String refToken, ZonedDateTime refTokenExpiry) {
+        AccessRecord record = this.accessRepo.save(new AccessRecord(userId, ipAddress, accToken,
+                accTokenExpiry, refToken,
+                refTokenExpiry, new Date(), Action.LOGIN));
+        log.debug("[TEST] login record added to db: {}", record);
+        return record;
     }
 
     /**
@@ -147,6 +211,10 @@ public class PublicControllerTest {
      */
     private void cleanUpUser(String username) {
         this.userRepository.deleteByUserName(username);
+    }
+
+    private void deleteAccesRecords() {
+        this.accessRepo.deleteAll();
     }
 
 }

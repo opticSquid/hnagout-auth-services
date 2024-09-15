@@ -61,8 +61,9 @@ public class PublicController {
     }
 
     @PostMapping("/renew")
-    public AuthResponse postMethodName(@RequestBody RenewToken tokenReq, HttpServletRequest req) {
-        return this.accessService.renewToken(tokenReq.token(), req.getRemoteAddr());
+    public ResponseEntity<AuthResponse> postMethodName(@RequestBody RenewToken tokenReq, HttpServletRequest req) {
+        return new ResponseEntity<>(this.accessService.renewToken(tokenReq.token(), req.getRemoteAddr()),
+                HttpStatus.OK);
     }
 
 }
