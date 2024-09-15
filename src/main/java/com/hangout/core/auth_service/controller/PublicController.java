@@ -55,13 +55,9 @@ public class PublicController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody ExistingUser user, HttpServletRequest request) {
-        try {
-            String ip = request.getRemoteAddr();
-            AuthResponse res = this.accessService.login(user, ip);
-            return new ResponseEntity<>(res, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(new AuthResponse(null, null), HttpStatus.BAD_REQUEST);
-        }
+        String ip = request.getRemoteAddr();
+        AuthResponse res = this.accessService.login(user, ip);
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
     @PostMapping("/renew")

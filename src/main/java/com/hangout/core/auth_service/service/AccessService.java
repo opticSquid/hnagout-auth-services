@@ -44,13 +44,16 @@ public class AccessService {
     @Autowired
     private AccessRecordRepo accessRecordRepo;
 
-    public AuthResponse login(ExistingUser user, String ip) throws Exception {
+    public AuthResponse login(ExistingUser user, String ip) {
+        log.debug("authenticating user: {}", user);
         Authentication auth = authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(user.username(), user.password()));
         String username = auth.getName();
+        log.debug("username from db:{}", username);
         // ? we are not checking if user exists or not here because earlier on we have
         // ? already checked that in authentication
         BigInteger userId = this.userRepo.findByUserName(username).get().getUserId();
+        log.debug("user id from db: {}", userId);
         // check if there is a active session already in that device with same user
         // action would not be present if useer has never logged in previously from
         // current device
@@ -59,14 +62,15 @@ public class AccessService {
         // action will be logout of user had previously logged out of this account in
         // current device.
         Optional<Action> action = this.accessRecordRepo.getLastEntryAttempt(userId, ip);
+        log.debug("is action present: {}", action.isPresent());
         // user already has an active session in the current device
+        // ! enum comparision is not working
         if (action.isPresent() && action.get().equals(Action.LOGIN)) {
+            log.debug("User already has a active session in current device");
             throw new UnauthorizedAccessException(
                     "User already has an active session is this device. Either switch to the existing session or logout of the existing session");
-        }
-        // user is trying to login from a new device
-        // or user had logged out of the previous session in current device
-        else {
+        } else {
+            log.debug("action is not present");
             String accessJwt = this.accessTokenUtil.generateToken(username);
             Date iatAccessToken = this.accessTokenUtil.getExpiresAt(accessJwt);
             String refreshJwt = this.refreshTokenUtil.generateToken(username);
