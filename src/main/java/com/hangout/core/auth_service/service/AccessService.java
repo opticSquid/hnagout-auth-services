@@ -107,12 +107,17 @@ public class AccessService {
         // ? 1.1.2.2.1 return user not found exception
         // ? 1.2 if jwt is not valid
         // ? 1.2.1 return jwt not valid exception
+        log.debug("refreshToken: {}, ip: {}", refreshToken, ip);
         if (this.refreshTokenUtil.validateToken(refreshToken)) {
             String username = this.refreshTokenUtil.getUsername(refreshToken);
+            log.debug("username extracted from token: {}", username);
             Optional<User> user = this.userRepo.findByUserName(username);
             if (user.isPresent() && user.get().isEnabled()) {
+                log.debug("user found from db: {}", user.get());
                 Optional<AccessRecord> latestAccess = this.accessRecordRepo.getLatestAccess(user.get().getUserId(), ip);
-                if (latestAccess.isPresent()) {
+                log.debug("is latest access record present: {}", latestAccess.isPresent());
+                // Latest access record is present and the latest access record is not logout
+                if (latestAccess.isPresent() && !latestAccess.get().getAction().equals(Action.LOGOUT)) {
                     // check if access token expiry time (UTC time) is before current UTC time
                     // this means access token is expired we need to create a new one
                     log.debug("Access token expiry time: {}", latestAccess.get().getAccessTokenExpiryTime());
