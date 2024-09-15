@@ -77,8 +77,8 @@ public class PublicControllerTest {
                             "{\"username\": \"" + userName
                                     + "\" ,\"email\": \"" + email + "\" , \"password\": \"" + password + "\"}"))
                     .andExpect(status().isOk())
-                    .andExpect(content().contentType("text/plain;charset=UTF-8"))
-                    .andExpect(MockMvcResultMatchers.content().string("Verification mail sent"))
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Verification mail sent"))
                     .andDo(print());
         } catch (Exception ex) {
             log.error("Exception occoured", ex);
@@ -99,7 +99,10 @@ public class PublicControllerTest {
                     .perform(post("/v1/public/login").contentType(MediaType.APPLICATION_JSON)
                             .characterEncoding(Charset.defaultCharset())
                             .content("{\"username\": \"" + userName + "\", \"password\":\"" + password + "\" }"))
-                    .andExpect(status().isOk()).andExpect(content().contentType("text/plain;charset=UTF-8"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.accessToken").isString())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.refreshToken").isString())
                     .andDo(print());
         } finally {
             cleanUpUser(userName);
@@ -108,7 +111,7 @@ public class PublicControllerTest {
 
     @Test
     @Transactional
-    void testLogin_usernamePasswordWrong() {
+    void testLogin_usernamePasswordWrong() throws Exception {
         String userName = "testUser";
         String email = "test@test.com";
         String password = "a1@bcdefgh456";
@@ -118,10 +121,10 @@ public class PublicControllerTest {
                     .perform(post("/v1/public/login").contentType(MediaType.APPLICATION_JSON)
                             .characterEncoding(Charset.defaultCharset())
                             .content("{\"username\": \"testUser3\",\"password\": \"a1@bcdefgh4567\"}"))
-                    .andExpect(status().is4xxClientError()).andExpect(content().contentType("text/plain;charset=UTF-8"))
+                    .andExpect(status().is4xxClientError())
+                    .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.title").value("Username or password is wrong"))
                     .andDo(print());
-        } catch (Exception ex) {
-            log.error("Exception occoured during execution of testLogin_usernamePasswordWrong", ex.getMessage());
         } finally {
             cleanUpUser(userName);
         }
