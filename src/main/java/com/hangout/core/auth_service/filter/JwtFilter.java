@@ -22,6 +22,7 @@ import com.hangout.core.auth_service.repository.AccessRecordRepo;
 import com.hangout.core.auth_service.repository.UserRepo;
 import com.hangout.core.auth_service.utils.JwtUtil;
 
+import io.micrometer.observation.annotation.Observed;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

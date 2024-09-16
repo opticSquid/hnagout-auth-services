@@ -25,6 +25,7 @@ import com.hangout.core.auth_service.exceptions.JwtNotValidException;
 import com.hangout.core.auth_service.exceptions.UserNotFoundException;
 import com.hangout.core.auth_service.repository.UserRepo;
 
+import io.micrometer.observation.annotation.Observed;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,6 +47,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private String activationEmailTopic;
 
     @Override
+    @Observed(name = "load-by-user-name", contextualName = "service")
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<User> user = userRepo.findByUserName(username);
         if (user.isPresent()) {
@@ -55,6 +57,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         throw new UsernameNotFoundException("User not found with username: " + username);
     }
 
+    @Observed(name = "signup", contextualName = "service")
     public void addNewUser(NewUser user) throws Exception {
         User newUser = new User(user.username(), user.email(), passwordEncoder.encode(user.password()));
         userRepo.save(newUser);
@@ -63,6 +66,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Transactional
+    @Observed(name = "verify-emal", contextualName = "service")
     public String verifyToken(String token) {
         try {
             ResponseEntity<AccountVerficationResponse> res = restClient
@@ -95,6 +99,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Transactional
+    @Observed(name = "delete-account", contextualName = "service")
     public void deleteUser(String username) throws Exception {
         this.userRepo.deleteByUserName(username);
     }

@@ -48,12 +48,14 @@ public class PublicController {
     }
 
     @GetMapping("/verify")
+    @Observed(name = "verify-email", contextualName = "controller")
     public String verifyAccount(@RequestParam String token) {
         log.debug("token received for verification: {}", token);
         return this.userDetailsService.verifyToken(token);
     }
 
     @PostMapping("/login")
+    @Observed(name = "login", contextualName = "controller")
     public ResponseEntity<AuthResponse> login(@RequestBody ExistingUser user, HttpServletRequest request) {
         String ip = request.getRemoteAddr();
         AuthResponse res = this.accessService.login(user, ip);
@@ -61,6 +63,7 @@ public class PublicController {
     }
 
     @PostMapping("/renew")
+    @Observed(name = "renew-token", contextualName = "controller")
     public ResponseEntity<AuthResponse> postMethodName(@RequestBody RenewToken tokenReq, HttpServletRequest req) {
         return new ResponseEntity<>(this.accessService.renewToken(tokenReq.token(), req.getRemoteAddr()),
                 HttpStatus.OK);

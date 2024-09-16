@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import io.micrometer.observation.annotation.Observed;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -21,6 +22,7 @@ public class AccessTokenUtil implements JwtUtil {
     private String ACCESS_SECRET_KEY;
 
     @Override
+    @Observed(name = "generate-token", contextualName = "access-token")
     public String generateToken(String username) {
         Map<String, Object> claims = new HashMap<>();
         // expiration is 5 minutes
@@ -28,6 +30,7 @@ public class AccessTokenUtil implements JwtUtil {
     }
 
     @Override
+    @Observed(name = "validate-token", contextualName = "access-token")
     public Boolean validateToken(String token) {
         log.info("Validating access token");
         Date expirationTime = this.extractAllClaims(token).getExpiration();
@@ -36,12 +39,14 @@ public class AccessTokenUtil implements JwtUtil {
     }
 
     @Override
+    @Observed(name = "get-expires-at", contextualName = "access-token")
     public Date getExpiresAt(String token) {
         Date issueTime = this.extractAllClaims(token).getExpiration();
         return issueTime;
     }
 
     @Override
+    @Observed(name = "get-username", contextualName = "access-token")
     public String getUsername(String token) {
         return extractAllClaims(token).getSubject();
     }

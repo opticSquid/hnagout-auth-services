@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import io.micrometer.observation.annotation.Observed;
 
 @Component
 public class RefreshTokenUtil implements JwtUtil {
@@ -19,6 +20,7 @@ public class RefreshTokenUtil implements JwtUtil {
     private String REFRESH_SECRET_KEY;
 
     @Override
+    @Observed(name = "generate-token", contextualName = "refresh-token")
     public String generateToken(String username) {
         Map<String, Object> claims = new HashMap<>();
         // expiration is 7 days
@@ -26,18 +28,21 @@ public class RefreshTokenUtil implements JwtUtil {
     }
 
     @Override
+    @Observed(name = "validate-token", contextualName = "refresh-token")
     public Boolean validateToken(String token) {
         Date expirationTime = this.extractAllClaims(token).getExpiration();
         return !expirationTime.before(new Date());
     }
 
     @Override
+    @Observed(name = "get-expires-at", contextualName = "refresh-token")
     public Date getExpiresAt(String token) {
         Date issueTime = this.extractAllClaims(token).getExpiration();
         return issueTime;
     }
 
     @Override
+    @Observed(name = "get-username", contextualName = "refresh-token")
     public String getUsername(String token) {
         return this.extractAllClaims(token).getSubject();
     }

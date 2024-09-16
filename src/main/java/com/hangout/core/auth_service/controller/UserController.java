@@ -14,6 +14,7 @@ import com.hangout.core.auth_service.dto.response.DefaultResponse;
 import com.hangout.core.auth_service.service.AccessService;
 import com.hangout.core.auth_service.service.UserDetailsServiceImpl;
 
+import io.micrometer.observation.annotation.Observed;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -39,12 +40,14 @@ public class UserController {
 	}
 
 	@DeleteMapping("/logout")
+	@Observed(name = "logout", contextualName = "controller")
 	public ResponseEntity<DefaultResponse> logout(HttpServletRequest req) {
 		Authentication user = getAuthenticatedUser();
 		return new ResponseEntity<>(this.accessService.logout(user.getName(), req.getRemoteAddr()), HttpStatus.OK);
 	}
 
 	@DeleteMapping
+	@Observed(name = "delete-account", contextualName = "controller")
 	public ResponseEntity<DefaultResponse> deleteUser() {
 		try {
 			String userName = getAuthenticatedUser().getName();

@@ -26,6 +26,7 @@ import com.hangout.core.auth_service.repository.AccessRecordRepo;
 import com.hangout.core.auth_service.repository.UserRepo;
 import com.hangout.core.auth_service.utils.JwtUtil;
 
+import io.micrometer.observation.annotation.Observed;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -44,6 +45,7 @@ public class AccessService {
     @Autowired
     private AccessRecordRepo accessRecordRepo;
 
+    @Observed(name = "login", contextualName = "service")
     public AuthResponse login(ExistingUser user, String ip) {
         log.debug("authenticating user: {}", user);
         Authentication auth = authenticationManager
@@ -64,7 +66,6 @@ public class AccessService {
         Optional<Action> action = this.accessRecordRepo.getLastEntryAttempt(userId, ip);
         log.debug("is action present: {}", action.isPresent());
         // user already has an active session in the current device
-        // ! enum comparision is not working
         if (action.isPresent() && action.get().equals(Action.LOGIN)) {
             log.debug("User already has a active session in current device");
             throw new UnauthorizedAccessException(
@@ -82,6 +83,7 @@ public class AccessService {
         }
     }
 
+    @Observed(name = "renew-token", contextualName = "service")
     public AuthResponse renewToken(String refreshToken, String ip) {
         // ? 1 Validate refresh token
         // ? 1.1 If valid
@@ -152,6 +154,7 @@ public class AccessService {
         }
     }
 
+    @Observed(name = "logout", contextualName = "service")
     public DefaultResponse logout(String userName, String ip) {
         Optional<User> user = this.userRepo.findByUserName(userName);
         if (user.isPresent()) {

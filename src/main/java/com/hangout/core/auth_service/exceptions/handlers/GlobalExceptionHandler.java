@@ -11,6 +11,8 @@ import com.hangout.core.auth_service.exceptions.JwtNotValidException;
 import com.hangout.core.auth_service.exceptions.UnauthorizedAccessException;
 import com.hangout.core.auth_service.exceptions.UserNotFoundException;
 
+import io.jsonwebtoken.MalformedJwtException;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	@ExceptionHandler(UserNotFoundException.class)
@@ -40,6 +42,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	public ProblemDetail exceptionHandler(BadCredentialsException ex) {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
 		problem.setTitle("Username or password is wrong");
+		return problem;
+	}
+
+	@ExceptionHandler(MalformedJwtException.class)
+	public ProblemDetail exceptionHandler(MalformedJwtException ex) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+		problem.setTitle("Token is invalid");
 		return problem;
 	}
 
