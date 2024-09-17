@@ -14,6 +14,8 @@ import com.hangout.core.auth_service.dto.response.DefaultResponse;
 import com.hangout.core.auth_service.service.AccessService;
 import com.hangout.core.auth_service.service.UserDetailsServiceImpl;
 
+import io.micrometer.observation.annotation.Observed;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,8 @@ public class UserController {
 	private AccessService accessService;
 
 	@GetMapping("/validate")
+	@Observed(name = "validate-token", contextualName = "controller")
+	@Operation(summary = "check validity of access token")
 	public ResponseEntity<String> validateAccessToken() {
 		// we really don't need to do anything here because
 		// before the request reaches here jwt token is already validated by jwt filter
@@ -39,12 +43,16 @@ public class UserController {
 	}
 
 	@DeleteMapping("/logout")
+	@Observed(name = "logout", contextualName = "controller")
+	@Operation(summary = "logout of an active session")
 	public ResponseEntity<DefaultResponse> logout(HttpServletRequest req) {
 		Authentication user = getAuthenticatedUser();
 		return new ResponseEntity<>(this.accessService.logout(user.getName(), req.getRemoteAddr()), HttpStatus.OK);
 	}
 
 	@DeleteMapping
+	@Observed(name = "delete-account", contextualName = "controller")
+	@Operation(summary = "remove user account permanently")
 	public ResponseEntity<DefaultResponse> deleteUser() {
 		try {
 			String userName = getAuthenticatedUser().getName();
