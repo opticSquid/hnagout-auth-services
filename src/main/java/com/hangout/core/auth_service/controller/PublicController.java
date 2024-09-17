@@ -17,6 +17,7 @@ import com.hangout.core.auth_service.service.AccessService;
 import com.hangout.core.auth_service.service.UserDetailsServiceImpl;
 
 import io.micrometer.observation.annotation.Observed;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,7 @@ public class PublicController {
 
     @PostMapping("/signup")
     @Observed(name = "signup", contextualName = "controller")
+    @Operation(summary = "Add new user")
     public ResponseEntity<DefaultResponse> signup(@RequestBody NewUser user) {
         try {
             this.userDetailsService.addNewUser(user);
@@ -49,6 +51,7 @@ public class PublicController {
 
     @GetMapping("/verify")
     @Observed(name = "verify-email", contextualName = "controller")
+    @Operation(summary = "verify new user's email")
     public String verifyAccount(@RequestParam String token) {
         log.debug("token received for verification: {}", token);
         return this.userDetailsService.verifyToken(token);
@@ -56,6 +59,7 @@ public class PublicController {
 
     @PostMapping("/login")
     @Observed(name = "login", contextualName = "controller")
+    @Operation(summary = "login exisiting user")
     public ResponseEntity<AuthResponse> login(@RequestBody ExistingUser user, HttpServletRequest request) {
         String ip = request.getRemoteAddr();
         AuthResponse res = this.accessService.login(user, ip);
@@ -64,6 +68,7 @@ public class PublicController {
 
     @PostMapping("/renew")
     @Observed(name = "renew-token", contextualName = "controller")
+    @Operation(summary = "renew access token given a refresh token if you have an active session")
     public ResponseEntity<AuthResponse> postMethodName(@RequestBody RenewToken tokenReq, HttpServletRequest req) {
         return new ResponseEntity<>(this.accessService.renewToken(tokenReq.token(), req.getRemoteAddr()),
                 HttpStatus.OK);
