@@ -5,7 +5,7 @@
     <springProperty scope="context" name="logFile" source="hangout.log.path"/>
     <springProperty scope="context" name="appName" source="spring.application.name" />
     <!--File Appender-->
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <!-- <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <encoder>
             <pattern>${FILE_LOG_PATTERN}</pattern>
         </encoder>
@@ -15,11 +15,11 @@
             <maxHistory>30</maxHistory>
             <totalSizeCap>100MB</totalSizeCap>
         </rollingPolicy>
-    </appender>
+    </appender> -->
     <springProfile name="test">
         <root level="INFO">
             <appender-ref ref="CONSOLE" />
-            <appender-ref ref="FILE" />
+            <!-- <appender-ref ref="FILE" /> -->
         </root>
     </springProfile>
 </configuration>
