@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>com.hangout.core</groupId>
 	<artifactId>hangout-auth-service</artifactId>
-	<version>1.0.3</version>
+	<version>1.0.4</version>
 	<name>hangout-auth-service</name>
 	<description>Microservice for authentication and authorization of users in Hangout</description>
 	<properties>
