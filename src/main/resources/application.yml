@@ -1,19 +1,27 @@
 server:
   port: 5011
   servlet:
-    context-path: /auths
+    context-path: /     
 spring:
   application:
     name: hangout-auth-service
   datasource:
     driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://${CLUSTER_URL}/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
+    properties:
+      hibernate:
+        "[format_sql]": true
     hibernate:
       ddl-auto: update
+    show-sql: true
   output:
     ansi:
       enabled: ALWAYS
   kafka:
+    bootstrap-servers: ${KAFKA_SERVER}   
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -21,6 +29,29 @@ spring:
 logging:
   level:
     web: error
+    sql: error
+    '[org.springframework.security]': error
+    '[com.hangout.core]': trace
+    # traceID and spanId are predefined MDC keys - we want the logs to include them
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+    
+# All traces should be sent to latency analysis tool
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health
+  # For Exemplars to work we need histogram buckets
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http:
+          server:
+            requests: true
 springdoc:
   api-docs:
     path: /api-docs
@@ -32,3 +63,13 @@ hangout:
     topic:
       verification-mail: account-verification
       activation-mail: account-activation
+  jwt:
+    secretKey: 
+      access: ${ACCESS_TOKEN_SECRET}
+      refresh: ${REFRESH_TOKEN_SECRET}
+  notification-service:
+    url: ${NOTIFICATION_SERVICE}
+  loki-server:
+    url: ${LOKI_SERVER}
+  log:
+    path: ${LOG_DIR}

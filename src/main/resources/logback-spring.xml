@@ -2,7 +2,7 @@
 <configuration>
     <include resource="org/springframework/boot/logging/logback/base.xml" />
     <include resource="org/springframework/boot/logging/logback/console-appender.xml" />
-    <!-- <property name="logFile" value="/home/soumalya/Development/Hangout/core-services/hangout-auth-service/logs/run"/> -->
+    <springProperty scope="context" name="logFile" source="hangout.log.path"/>
     <springProperty scope="context" name="lokiServer" source="hangout.loki-server.url"/>
     <springProperty scope="context" name="appName" source="spring.application.name" />
     <!--LOKI Appender-->
@@ -21,7 +21,7 @@
         </format>
     </appender>
     <!--File Appender-->
-    <!-- <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <encoder>
             <pattern>${FILE_LOG_PATTERN}</pattern>
         </encoder>
@@ -31,24 +31,16 @@
             <maxHistory>30</maxHistory>
             <totalSizeCap>100MB</totalSizeCap>
         </rollingPolicy>
-    </appender> -->
+    </appender>
     <springProfile name="home">
         <root level="INFO">
-            <!-- <appender-ref ref="CONSOLE" /> -->
             <appender-ref ref="LOKI" />
         </root>
     </springProfile>
-    <springProfile name="test">
+    <springProfile name="default">
         <root level="INFO">
-            <!--Default console appender-->
-            <appender-ref ref="CONSOLE" />
-            <!-- <appender-ref ref="FILE" /> -->
-        </root>
-    </springProfile>
-    <springProfile name="prod">
-        <root level="INFO">
-            <!-- <appender-ref ref="CONSOLE" /> -->
             <appender-ref ref="LOKI" />
+            <appender-ref ref="FILE" />
         </root>
     </springProfile>
 </configuration>

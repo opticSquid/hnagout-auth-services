@@ -1,3 +1,4 @@
+ARG EXEC_VERSION=1.0.1
 # Use an appropriate base image with Java and Maven pre-installed
 FROM maven:3-amazoncorretto-21
 # Set the working directory inside the container
@@ -13,7 +14,9 @@ COPY pom.xml .
 COPY src ./src
 
 # Build the project
-RUN mvn install
+# skipping tests because tests depend on test container and it is not possible to install docker in a docker image
+# other than that nin github test is done is another workflow file which will tell is wheather can we merge the pr or not
+RUN mvn clean package -DskipTests=true
 
 # Set the command to run the Spring Boot application
-CMD ["java", "-jar", "target/hangout-auth-service-1.0.1.jar"]
+CMD ["java", "-jar", "target/hangout-auth-service-${EXEC_VERSION}.jar"]
