@@ -51,10 +51,3 @@ jobs:
           subject-name: ghcr.io/${{ github.repository }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
-
-      - name: Generate artifact attestation - Dockerhub
-        uses: actions/attest-build-provenance@v1
-        with:
-            subject-name: hub.docker.com/${{ github.repository }}
-            subject-digest: ${{ steps.push.outputs.digest }}
-            push-to-registry: true
