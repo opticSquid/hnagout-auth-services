@@ -9,4 +9,6 @@
 
 ## Introduction
 
-Authentication and Authorization Service for Hangout
+Authentication and Authorization Service for Hangout.
+
+>Work in progress
