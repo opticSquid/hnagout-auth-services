@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>com.hangout.core</groupId>
 	<artifactId>hangout-auth-service</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<name>hangout-auth-service</name>
 	<description>Microservice for authentication and authorization of users in Hangout</description>
 	<properties>
@@ -183,6 +183,10 @@
 						</exclude>
 					</excludes>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.graalvm.buildtools</groupId>
+				<artifactId>native-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>
