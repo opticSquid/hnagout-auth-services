@@ -9,7 +9,6 @@ jobs:
     env: 
       GHCR_REGISTRY: ghcr.io
       DOCKERHUB_REGISTRY: hub.docker.com
-      IMAGE_NAME: ${{ github.repository }}
     permissions:
       packages: write
       contents: read
@@ -37,7 +36,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            opticsquid/${{env.IMAGE_NAME}}
+            ${{ github.repository }}
             ghcr.io/${{ github.repository }}
 
       - name: Build and push Docker images
@@ -52,12 +51,12 @@ jobs:
       - name: Generate artifact attestation - Ghcr
         uses: actions/attest-build-provenance@v1
         with:
-          subject-name: ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME}}
+          subject-name: ${{ env.GHCR_REGISTRY }}/${{ github.repository }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
       - name: Generate artifact attestation - DockerHub
         uses: actions/attest-build-provenance@v1
         with:
-            subject-name: ${{ env.DOCKERHUB_REGISTRY }}/${{ env.IMAGE_NAME}}
+            subject-name: ${{ env.DOCKERHUB_REGISTRY }}/${{ github.repository }}
             subject-digest: ${{ steps.push.outputs.digest }}
             push-to-registry: true
