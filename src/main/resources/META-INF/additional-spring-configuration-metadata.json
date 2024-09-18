@@ -39,6 +39,11 @@
       "name": "hangout.kafka.topic.activation-mail",
       "type": "java.lang.String",
       "description": "Topic to send events for account activation mail"
+    },
+    {
+      "name": "hangout.loki-server.url",
+      "type": "java.lang.String",
+      "description": "URL of Grafana Loki server. It is used to ship logs for observability"
     }
   ]
 }

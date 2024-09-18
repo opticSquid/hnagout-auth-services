@@ -3,10 +3,8 @@ server:
   servlet:
     context-path: /auths
 spring:
-  profiles:
-    active: home
   application:
-    name: auth
+    name: hangout-auth-service
   datasource:
     driverClassName: org.postgresql.Driver
   jpa:

@@ -30,9 +30,13 @@ build/
 !**/src/test/**/build/
 
 ### VS Code ###
-.vscode/
+.vscode/settings.json
+.vscode/tasks.json
 Sonar-scan.sh
 
 
 ### Log files ###
 *.log
+
+### .env files ###
+.env

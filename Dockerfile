@@ -7,13 +7,13 @@ WORKDIR /usr/src/app
 COPY pom.xml .
 
 # Download the project dependencies
-RUN mvn dependency:go-offline -B
+# RUN mvn dependency:go-offline -B
 
 # Copy the project source code to the container
 COPY src ./src
 
 # Build the project
-RUN mvn package -DskipTests 
+RUN mvn install
 
 # Set the command to run the Spring Boot application
-CMD ["java", "-jar", "target/Users-0.0.2.jar"]
+CMD ["java", "-jar", "target/hangout-auth-service-1.0.0.jar"]
