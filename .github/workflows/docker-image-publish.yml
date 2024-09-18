@@ -33,7 +33,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            opticsquid/hangout-auth-service
+            ${{ github.repository }}
             ghcr.io/${{ github.repository }}
 
       - name: Build and push Docker images
@@ -45,9 +45,16 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Generate artifact attestation
+      - name: Generate artifact attestation - Ghcr
         uses: actions/attest-build-provenance@v1
         with:
           subject-name: gchr.io/${{ github.repository }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
+          
+      - name: Generate artifact attestation - Dockerhub
+        uses: actions/attest-build-provenance@v1
+        with:
+            subject-name: hub.docker.com/${{ github.repository }}
+            subject-digest: ${{ steps.push.outputs.digest }}
+            push-to-registry: true
