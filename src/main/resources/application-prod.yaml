@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://${CLUSTER_URL}:5432/userDb
-    username: postgres
-    password: PkNLm@#2357
+    url: jdbc:postgresql://${CLUSTER_URL}/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
     properties:
       hibernate:
@@ -10,20 +10,10 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-  application:
-    instance_id: ${random.value}
-#   cloud:
-#     consul:
-#       host: localhost
-#       port: 5500
-#       discovery:
-#         healthCheckPath: ${server.servlet.context-path}/actuator/health
-#         healthCheckInterval: 30s
-#         instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id}}
-#         metadata:
-#           app-type: security
+  # application:
+  #   instance_id: ${random.value}
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_SERVER}
 
 logging:
   level:
@@ -55,4 +45,9 @@ management:
 hangout:
   jwt:
     secretKey: 
-      access: TaK+HaV^uvCHEFsEVfypW#7g9^k*Z8$V
+      access: ${ACCESS_TOKEN_SECRET}
+      refresh: ${REFRESH_TOKEN_SECRET}
+  notification-service:
+    url: ${NOTIFICATION_SERVICE}
+  loki-server:
+    url: ${LOKI_SERVER}

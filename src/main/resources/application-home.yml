@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/userdb
-    username: postgres
-    password: PkNLm@#2357
+    url: jdbc:postgresql://${CLUSTER_URL}/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
     properties:
       hibernate:
@@ -10,20 +10,8 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-  application:
-    instance_id: ${random.value}
-  cloud:
-    consul:
-      host: localhost
-      port: 5500
-      discovery:
-        healthCheckPath: ${server.servlet.context-path}/actuator/health
-        healthCheckInterval: 60s
-        instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id}}
-        metadata:
-          app-type: security
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_SERVER}
 
 logging:
   level:
@@ -55,7 +43,9 @@ management:
 hangout:
   jwt:
     secretKey: 
-      access: u_UGqxTQ2BvLbhkeo2B0QV-Hq6GqWzPyqwgSrXLgL7JCtp6SXWU9L1BKjEDSStAb2sZdy0iKrLU6z8MIEZze3CbhjXQfDUW7WtMEpv1yEmWdPoijGtiVLELF-5yaUYgVVrPVKNFv7xqIVH5sDl0VQ6El4d0v013qJ0j75UyZQtvGHjUMEmTE0H7iMf2yC19HBAGKzuwraZvNzLUStzLLcbRA6jlrnWqGyHfVBkoCjR2-Dtzom84yI20wk44xxC7NdrII40fZobLq856lQxewOCMXPG4U6sx_XuFwon9p1n0I-rrItcMj_lQHhPf-Z2lXnM05_DlXcu7LE4v2NdUjUw
-      refresh: kTYpg95oeqgnBhfi16DYSe2NT2T6kXPDKGrLeXpSA2rc7Jltt32AtYGPdmsYFoKt0H2_dJj8RPgbP3UGzD6ONSDJOWbbMvSU1MyNDM2xj5ncv2oN1iewNXz6gEyTdeuR3IolmGnPBPFVZR78is6MnS7W7WBpRvQCoaes9l7GhMHf6MhtX4nstm9LkTUx5-MQw4Tg5XTgo82FApVcg1x9hvDno6WTci_gJ9874xsAi5wg9V15cXFTesJ3GJfGf4NTkX9SqqAVG_D08oLOXFAXjvLDYVrl_O_9JMyCBgVEyMV81UMw8v72nYGAfDPy2uH3nTUOTXA4qlijAXOFGxV7kg
+      access: ${ACCESS_TOKEN_SECRET}      
+      refresh: ${REFRESH_TOKEN_SECRET}
   notification-service:
-    url: http://localhost:5012
+    url: ${NOTIFICATION_SERVICE}
+  loki-server:
+    url: ${LOKI_SERVER}

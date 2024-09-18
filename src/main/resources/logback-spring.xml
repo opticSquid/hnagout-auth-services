@@ -3,11 +3,12 @@
     <include resource="org/springframework/boot/logging/logback/base.xml" />
     <include resource="org/springframework/boot/logging/logback/console-appender.xml" />
     <!-- <property name="logFile" value="/home/soumalya/Development/Hangout/core-services/hangout-auth-service/logs/run"/> -->
+    <springProperty scope="context" name="lokiServer" source="hangout.loki-server.url"/>
     <springProperty scope="context" name="appName" source="spring.application.name" />
     <!--LOKI Appender-->
     <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
         <http>
-            <url>http://localhost:3100/loki/api/v1/push</url>
+            <url>${lokiServer}/loki/api/v1/push</url>
         </http>
         <format>
             <label>
@@ -33,6 +34,7 @@
     </appender> -->
     <springProfile name="home">
         <root level="INFO">
+            <!-- <appender-ref ref="CONSOLE" /> -->
             <appender-ref ref="LOKI" />
         </root>
     </springProfile>
@@ -41,6 +43,12 @@
             <!--Default console appender-->
             <appender-ref ref="CONSOLE" />
             <!-- <appender-ref ref="FILE" /> -->
+        </root>
+    </springProfile>
+    <springProfile name="prod">
+        <root level="INFO">
+            <!-- <appender-ref ref="CONSOLE" /> -->
+            <appender-ref ref="LOKI" />
         </root>
     </springProfile>
 </configuration>
