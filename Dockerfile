@@ -1,3 +1,4 @@
+ARG EXEC_VERSION=1.0.1
 # Use an appropriate base image with Java and Maven pre-installed
 FROM maven:3-amazoncorretto-21
 # Set the working directory inside the container
@@ -13,7 +14,7 @@ COPY pom.xml .
 COPY src ./src
 
 # Build the project
-RUN mvn install
+RUN mvn package
 
 # Set the command to run the Spring Boot application
-CMD ["java", "-jar", "target/hangout-auth-service-1.0.1.jar"]
+CMD ["java", "-jar", "target/hangout-auth-service-${EXEC_VERSION}.jar"]

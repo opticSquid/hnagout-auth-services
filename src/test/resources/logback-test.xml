@@ -3,23 +3,7 @@
     <include resource="org/springframework/boot/logging/logback/base.xml" />
     <include resource="org/springframework/boot/logging/logback/console-appender.xml" />
     <springProperty scope="context" name="logFile" source="hangout.log.path"/>
-    <springProperty scope="context" name="lokiServer" source="hangout.loki-server.url"/>
     <springProperty scope="context" name="appName" source="spring.application.name" />
-    <!--LOKI Appender-->
-    <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
-        <http>
-            <url>${lokiServer}/loki/api/v1/push</url>
-        </http>
-        <format>
-            <label>
-                <pattern>app=${appName},host=${HOSTNAME},traceID=%X{traceId:-NONE},spanID=%X{spanId:-NONE},level=%level</pattern>
-            </label>
-            <message>
-                <pattern>${FILE_LOG_PATTERN}</pattern>
-            </message>
-            <sortByTime>true</sortByTime>
-        </format>
-    </appender>
     <!--File Appender-->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <encoder>
@@ -27,19 +11,14 @@
         </encoder>
         <file>${logFile}.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${logFile}-%d{yyyy-MM-dd HH:mm}.log</fileNamePattern>
+            <fileNamePattern>${logFile}-test-%d{yyyy-MM-dd HH:mm}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
             <totalSizeCap>100MB</totalSizeCap>
         </rollingPolicy>
     </appender>
-    <springProfile name="home">
+    <springProfile name="test">
         <root level="INFO">
-            <appender-ref ref="LOKI" />
-        </root>
-    </springProfile>
-    <springProfile name="default">
-        <root level="INFO">
-            <appender-ref ref="LOKI" />
+            <appender-ref ref="CONSOLE" />
             <appender-ref ref="FILE" />
         </root>
     </springProfile>

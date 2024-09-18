@@ -44,6 +44,11 @@
       "name": "hangout.loki-server.url",
       "type": "java.lang.String",
       "description": "URL of Grafana Loki server. It is used to ship logs for observability"
+    },
+    {
+      "name": "hangout.log.path",
+      "type": "java.lang.String",
+      "description": "Log Directory where ogs will be permanently stored"
     }
   ]
 }
