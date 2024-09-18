@@ -9,6 +9,7 @@ jobs:
     env: 
       GHCR_REGISTRY: ghcr.io
       DOCKERHUB_REGISTRY: hub.docker.com
+      DOCKERHUB_IMAGE: opticsquid/hangout-auth-service
     permissions:
       packages: write
       contents: read
@@ -36,7 +37,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ github.repository }}
+            ${{env.DOCKERHUB_IMAGE}}
             ghcr.io/${{ github.repository }}
 
       - name: Build and push Docker images
@@ -57,6 +58,6 @@ jobs:
       - name: Generate artifact attestation - DockerHub
         uses: actions/attest-build-provenance@v1
         with:
-            subject-name: ${{ env.DOCKERHUB_REGISTRY }}/${{ github.repository }}
+            subject-name: ${{ env.DOCKERHUB_REGISTRY }}/${{env.DOCKERHUB_IMAGE}}
             subject-digest: ${{ steps.push.outputs.digest }}
             push-to-registry: true
