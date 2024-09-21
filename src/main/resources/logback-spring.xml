@@ -2,7 +2,7 @@
 <configuration>
     <include resource="org/springframework/boot/logging/logback/base.xml" />
     <include resource="org/springframework/boot/logging/logback/console-appender.xml" />
-    <springProperty scope="context" name="logFile" source="hangout.log.path"/>
+    <springProperty scope="context" name="logDir" source="hangout.log.path"/>
     <springProperty scope="context" name="lokiServer" source="hangout.loki-server.url"/>
     <springProperty scope="context" name="appName" source="spring.application.name" />
     <!--LOKI Appender-->
@@ -25,9 +25,9 @@
         <encoder>
             <pattern>${FILE_LOG_PATTERN}</pattern>
         </encoder>
-        <file>${logFile}.log</file>
+        <file>${logDir}/run.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${logFile}-%d{yyyy-MM-dd HH:mm}.log</fileNamePattern>
+            <fileNamePattern>${logDir}/run-%d{yyyy-MM-dd HH:mm}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
             <totalSizeCap>100MB</totalSizeCap>
         </rollingPolicy>

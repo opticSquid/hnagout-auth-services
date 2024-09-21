@@ -50,4 +50,4 @@ hangout:
   loki-server:
     url: http://localhost:3100
   log:
-    path: /home/soumalya/Development/Hangout/core-services/hangout-auth-service/logs/run
+    path: /home/soumalya/Development/Hangout/core-services/hangout-auth-service/logs
