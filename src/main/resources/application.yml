@@ -1,7 +1,7 @@
 server:
   port: 5011
   servlet:
-    context-path: /     
+    context-path: /
 spring:
   application:
     name: hangout-auth-service
@@ -71,5 +71,7 @@ hangout:
     url: ${NOTIFICATION_SERVICE}
   loki-server:
     url: ${LOKI_SERVER}
+  tempo-server:
+    url: ${TEMPO_SERVER}
   log:
     path: ${LOG_DIR}
