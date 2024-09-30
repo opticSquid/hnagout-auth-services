@@ -2,16 +2,16 @@
 <configuration>
     <include resource="org/springframework/boot/logging/logback/base.xml" />
     <include resource="org/springframework/boot/logging/logback/console-appender.xml" />
-    <springProperty scope="context" name="logFile" source="hangout.log.path"/>
+    <springProperty scope="context" name="logDir" source="hangout.log.path"/>
     <springProperty scope="context" name="appName" source="spring.application.name" />
     <!--File Appender-->
     <!-- <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <encoder>
             <pattern>${FILE_LOG_PATTERN}</pattern>
         </encoder>
-        <file>${logFile}.log</file>
+        <file>${logDir}/test.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${logFile}-test-%d{yyyy-MM-dd HH:mm}.log</fileNamePattern>
+            <fileNamePattern>${logDir}/test-%d{yyyy-MM-dd HH:mm}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
             <totalSizeCap>100MB</totalSizeCap>
         </rollingPolicy>

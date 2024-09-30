@@ -53,3 +53,4 @@ hangout:
     url: http://localhost:4317
   log:
     path: /home/soumalya/Development/Hangout/core-services/hangout-auth-service/logs
+    

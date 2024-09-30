@@ -25,10 +25,10 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-    properties:
-      security.protocol: ${KAFKA_SECURITY_PROTOCOL}
-      sasl.mechanism: ${KAFKA_SASL_MECHANISM}
-      sasl.jaas.config: org.apache.kafka.common.security.scram.ScramLoginModule required username="${KAFKA_USER}" password="$(kubectl get secret kafka-user-passwords --namespace persistance -o jsonpath='{.data.client-passwords}' | base64 -d | cut -d , -f 1)";
+    # properties:
+    #   security.protocol: ${KAFKA_SECURITY_PROTOCOL}
+    #   sasl.mechanism: ${KAFKA_SASL_MECHANISM}
+    #   sasl.jaas.config: org.apache.kafka.common.security.scram.ScramLoginModule required username="${KAFKA_USER}" password="$(kubectl get secret kafka-user-passwords --namespace persistance -o jsonpath='{.data.client-passwords}' | base64 -d | cut -d , -f 1)";
         
 logging:
   level:
