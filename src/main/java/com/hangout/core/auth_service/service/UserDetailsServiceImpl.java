@@ -40,7 +40,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private KafkaTemplate<String, Object> eventBus;
     @Value("${hangout.kafka.topic.verification-mail}")
     private String verificationEmailTopic;
-    private final RestClient restClient = RestClient.create();
+    @Autowired
+    private RestClient restClient;
     @Value("${hangout.notification-service.url}")
     private String notificationService;
     @Value("${hangout.kafka.topic.activation-mail}")
