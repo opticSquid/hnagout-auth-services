@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.hangout.core.auth_service.dto.request.ExistingUser;
+import com.hangout.core.auth_service.dto.request.PublicUserDetails;
 import com.hangout.core.auth_service.dto.response.AuthResponse;
 import com.hangout.core.auth_service.dto.response.DefaultResponse;
 import com.hangout.core.auth_service.entity.AccessRecord;
@@ -91,8 +92,7 @@ public class AccessService {
         // ? 1.1.2 find the userId from user_creds table
         // ? 1.1.2.1 if found
         // ? 1.1.2.1.1 Take that userId and current ip address and try to find the
-        // ? latest
-        // ? record from access_record
+        // ? latest record from access_record
         // ? 1.1.2.1.1 if found
         // ? 1.1.2.1.1.1 Take the access token, access token issue time, refresh token
         // ? from there
@@ -133,13 +133,14 @@ public class AccessService {
                                 .atZone(ZoneOffset.UTC);
                         this.accessRecordRepo.save(new AccessRecord(user.get().getUserId(), ip, accessToken,
                                 expiryTime, latestAccess.get().getRefreshToken(),
-                                latestAccess.get().getRefreshTokenExpiryTime(), new Date(), Action.HEART_BEAT));
+                                latestAccess.get().getRefreshTokenExpiryTime(), new Date(), Action.RENEW_TOKEN));
                         return new AuthResponse(accessToken, refreshToken);
                     } else {
                         String accessToken = latestAccess.get().getAccessToken();
                         this.accessRecordRepo.save(new AccessRecord(user.get().getUserId(), ip, accessToken,
                                 latestAccess.get().getAccessTokenExpiryTime(), latestAccess.get().getRefreshToken(),
-                                latestAccess.get().getRefreshTokenExpiryTime(), new Date(), Action.HEART_BEAT));
+                                latestAccess.get().getRefreshTokenExpiryTime(), new Date(),
+                                Action.PREMATURE_TOKEN_RENEW));
                         return new AuthResponse(accessToken, refreshToken);
                     }
                 } else {
@@ -174,6 +175,25 @@ public class AccessService {
             // thus not allowed to access this route
             // but still keeping it just in case
             throw new UserNotFoundException("Current user is not found in database");
+        }
+    }
+
+    public PublicUserDetails checkTokenValidity(String username, String ip) {
+        // get user from database
+        log.debug("Username: {}, ip: {}", username, ip);
+        // ! for dev only
+        ip = ip.equals("127.0.0.1") ? "0:0:0:0:0:0:0:1" : ip;
+        Optional<User> user = this.userRepo.findByUserName(username);
+        if (user.isPresent() && user.get().isEnabled()) {
+            Optional<AccessRecord> latestAccess = this.accessRecordRepo.getLatestAccess(user.get().getUserId(), ip);
+            // check if the last action of the user in the given device was not logout
+            if (latestAccess.isPresent() && !latestAccess.get().getAction().equals(Action.LOGOUT)) {
+                return new PublicUserDetails(username, user.get().getRole());
+            } else {
+                throw new UnauthorizedAccessException("User is not authorized to access this route");
+            }
+        } else {
+            throw new UserNotFoundException("User indicated by the token was not found");
         }
     }
 }
