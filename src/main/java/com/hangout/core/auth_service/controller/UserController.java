@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.hangout.core.auth_service.dto.request.PublicUserDetails;
 import com.hangout.core.auth_service.dto.response.DefaultResponse;
 import com.hangout.core.auth_service.service.AccessService;
 import com.hangout.core.auth_service.service.UserDetailsServiceImpl;
@@ -33,13 +34,10 @@ public class UserController {
 	@GetMapping("/validate")
 	@Observed(name = "validate-token", contextualName = "controller")
 	@Operation(summary = "check validity of access token")
-	public ResponseEntity<String> validateAccessToken() {
-		// we really don't need to do anything here because
-		// before the request reaches here jwt token is already validated by jwt filter
-		// and access is recorded in db
-		// if the request reaches till here this means everything is ok
-		// cheeky right? 😜
-		return new ResponseEntity<>(HttpStatus.OK);
+	public ResponseEntity<PublicUserDetails> validateAccessToken(HttpServletRequest request) {
+		return new ResponseEntity<>(
+				this.accessService.checkTokenValidity(getAuthenticatedUser().getName(), request.getRemoteAddr()),
+				HttpStatus.OK);
 	}
 
 	@DeleteMapping("/logout")

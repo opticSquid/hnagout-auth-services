@@ -1,6 +1,7 @@
 package com.hangout.core.auth_service.service;
 
 import java.math.BigInteger;
+import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Date;
@@ -14,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.hangout.core.auth_service.dto.request.ExistingUser;
+import com.hangout.core.auth_service.dto.request.PublicUserDetails;
 import com.hangout.core.auth_service.dto.response.AuthResponse;
 import com.hangout.core.auth_service.dto.response.DefaultResponse;
 import com.hangout.core.auth_service.entity.AccessRecord;
@@ -52,25 +54,65 @@ public class AccessService {
                 .authenticate(new UsernamePasswordAuthenticationToken(user.username(), user.password()));
         String username = auth.getName();
         log.debug("username from db:{}", username);
-        // ? we are not checking if user exists or not here because earlier on we have
-        // ? already checked that in authentication
+        // ** we are not checking if user exists or not here because earlier on we have
+        // ** already checked that in authentication
         BigInteger userId = this.userRepo.findByUserName(username).get().getUserId();
         log.debug("user id from db: {}", userId);
-        // check if there is a active session already in that device with same user
-        // action would not be present if useer has never logged in previously from
+        // get the last login/logout attempt by the user on the current device
+        Optional<Instant> session = this.accessRecordRepo.getLastEntryAttemptRefTokenExpiry(userId, ip);
+        Optional<Action> action = this.accessRecordRepo.getLastEntryAttemptAction(userId, ip);
+        // ? condition 1:
+        // if the user had a session in this device before (this is a known device for
+        // the user)
+        if (action.isPresent()) {
+            // ? condition 1.1:
+            // if the user is logging in after a long time it may happen
+            // the user had not logged out of last session and refresh token of that session
+            // has expired.
+            // Allow the login in that case
+            // and consider it as a new session
+            log.debug("last entry action: {}, ref expiry: {}, current time: {}", action.get(),
+                    session.get(), Instant.now());
+            if (action.get().equals(Action.LOGIN)
+                    && session.get().isBefore(Instant.now())) {
+                log.debug("user is logging in after a long time, the past active session's refresh token has expired");
+                String accessJwt = this.accessTokenUtil.generateToken(username);
+                Date iatAccessToken = this.accessTokenUtil.getExpiresAt(accessJwt);
+                String refreshJwt = this.refreshTokenUtil.generateToken(username);
+                Date iatRefreshToken = this.refreshTokenUtil.getExpiresAt(refreshJwt);
+                this.accessRecordRepo.save(
+                        new AccessRecord(userId, ip, accessJwt, iatAccessToken, refreshJwt, iatRefreshToken, new Date(),
+                                Action.LOGIN));
+                return new AuthResponse(accessJwt, refreshJwt);
+            }
+            // ? condition 1.2:
+            // ** if the user has an active session in the current device, do not
+            // ** allow another login attempt (I donot need to check date here because if
+            // ** refresh token was expired it would be dealt in above condition)
+            else if (action.get().equals(Action.LOGIN)) {
+                log.debug("User already has a active session in current device");
+                throw new UnauthorizedAccessException(
+                        "User already has an active session is this device. Either switch to the existing session or logout of the existing session");
+            }
+            // ? condition 1.3:
+            // action will be logout if user had previously logged out of this account in
+            // current device.
+            else {
+                log.debug("user had previously logged out of a session in this current device");
+                String accessJwt = this.accessTokenUtil.generateToken(username);
+                Date iatAccessToken = this.accessTokenUtil.getExpiresAt(accessJwt);
+                String refreshJwt = this.refreshTokenUtil.generateToken(username);
+                Date iatRefreshToken = this.refreshTokenUtil.getExpiresAt(refreshJwt);
+                this.accessRecordRepo.save(
+                        new AccessRecord(userId, ip, accessJwt, iatAccessToken, refreshJwt, iatRefreshToken, new Date(),
+                                Action.LOGIN));
+                return new AuthResponse(accessJwt, refreshJwt);
+            }
+        }
+        // ? condition 3:
+        // action would not be present if user has never logged in previously from
         // current device
-        // action will be login if user has an active session already going in that
-        // device
-        // action will be logout of user had previously logged out of this account in
-        // current device.
-        Optional<Action> action = this.accessRecordRepo.getLastEntryAttempt(userId, ip);
-        log.debug("is action present: {}", action.isPresent());
-        // user already has an active session in the current device
-        if (action.isPresent() && action.get().equals(Action.LOGIN)) {
-            log.debug("User already has a active session in current device");
-            throw new UnauthorizedAccessException(
-                    "User already has an active session is this device. Either switch to the existing session or logout of the existing session");
-        } else {
+        else {
             log.debug("action is not present");
             String accessJwt = this.accessTokenUtil.generateToken(username);
             Date iatAccessToken = this.accessTokenUtil.getExpiresAt(accessJwt);
@@ -91,8 +133,7 @@ public class AccessService {
         // ? 1.1.2 find the userId from user_creds table
         // ? 1.1.2.1 if found
         // ? 1.1.2.1.1 Take that userId and current ip address and try to find the
-        // ? latest
-        // ? record from access_record
+        // ? latest record from access_record
         // ? 1.1.2.1.1 if found
         // ? 1.1.2.1.1.1 Take the access token, access token issue time, refresh token
         // ? from there
@@ -133,13 +174,14 @@ public class AccessService {
                                 .atZone(ZoneOffset.UTC);
                         this.accessRecordRepo.save(new AccessRecord(user.get().getUserId(), ip, accessToken,
                                 expiryTime, latestAccess.get().getRefreshToken(),
-                                latestAccess.get().getRefreshTokenExpiryTime(), new Date(), Action.HEART_BEAT));
+                                latestAccess.get().getRefreshTokenExpiryTime(), new Date(), Action.RENEW_TOKEN));
                         return new AuthResponse(accessToken, refreshToken);
                     } else {
                         String accessToken = latestAccess.get().getAccessToken();
                         this.accessRecordRepo.save(new AccessRecord(user.get().getUserId(), ip, accessToken,
                                 latestAccess.get().getAccessTokenExpiryTime(), latestAccess.get().getRefreshToken(),
-                                latestAccess.get().getRefreshTokenExpiryTime(), new Date(), Action.HEART_BEAT));
+                                latestAccess.get().getRefreshTokenExpiryTime(), new Date(),
+                                Action.PREMATURE_TOKEN_RENEW));
                         return new AuthResponse(accessToken, refreshToken);
                     }
                 } else {
@@ -174,6 +216,25 @@ public class AccessService {
             // thus not allowed to access this route
             // but still keeping it just in case
             throw new UserNotFoundException("Current user is not found in database");
+        }
+    }
+
+    public PublicUserDetails checkTokenValidity(String username, String ip) {
+        // get user from database
+        log.debug("Username: {}, ip: {}", username, ip);
+        // ! for dev only
+        ip = ip.equals("127.0.0.1") ? "0:0:0:0:0:0:0:1" : ip;
+        Optional<User> user = this.userRepo.findByUserName(username);
+        if (user.isPresent() && user.get().isEnabled()) {
+            Optional<AccessRecord> latestAccess = this.accessRecordRepo.getLatestAccess(user.get().getUserId(), ip);
+            // check if the last action of the user in the given device was not logout
+            if (latestAccess.isPresent() && !latestAccess.get().getAction().equals(Action.LOGOUT)) {
+                return new PublicUserDetails(username, user.get().getRole());
+            } else {
+                throw new UnauthorizedAccessException("User is not authorized to access this route");
+            }
+        } else {
+            throw new UserNotFoundException("User indicated by the token was not found");
         }
     }
 }
