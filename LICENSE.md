@@ -1,4 +1,4 @@
-# Hangout Source-Available License
+## Hangout Source-Available License
 
 **Last Updated:** 26-10-2024
 
