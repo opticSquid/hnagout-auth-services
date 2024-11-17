@@ -1,6 +1,7 @@
 package com.hangout.core.auth_service.service;
 
 import java.math.BigInteger;
+import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Date;
@@ -53,25 +54,65 @@ public class AccessService {
                 .authenticate(new UsernamePasswordAuthenticationToken(user.username(), user.password()));
         String username = auth.getName();
         log.debug("username from db:{}", username);
-        // ? we are not checking if user exists or not here because earlier on we have
-        // ? already checked that in authentication
+        // ** we are not checking if user exists or not here because earlier on we have
+        // ** already checked that in authentication
         BigInteger userId = this.userRepo.findByUserName(username).get().getUserId();
         log.debug("user id from db: {}", userId);
-        // check if there is a active session already in that device with same user
-        // action would not be present if useer has never logged in previously from
+        // get the last login/logout attempt by the user on the current device
+        Optional<Instant> session = this.accessRecordRepo.getLastEntryAttemptRefTokenExpiry(userId, ip);
+        Optional<Action> action = this.accessRecordRepo.getLastEntryAttemptAction(userId, ip);
+        // ? condition 1:
+        // if the user had a session in this device before (this is a known device for
+        // the user)
+        if (action.isPresent()) {
+            // ? condition 1.1:
+            // if the user is logging in after a long time it may happen
+            // the user had not logged out of last session and refresh token of that session
+            // has expired.
+            // Allow the login in that case
+            // and consider it as a new session
+            log.debug("last entry action: {}, ref expiry: {}, current time: {}", action.get(),
+                    session.get(), Instant.now());
+            if (action.get().equals(Action.LOGIN)
+                    && session.get().isBefore(Instant.now())) {
+                log.debug("user is logging in after a long time, the past active session's refresh token has expired");
+                String accessJwt = this.accessTokenUtil.generateToken(username);
+                Date iatAccessToken = this.accessTokenUtil.getExpiresAt(accessJwt);
+                String refreshJwt = this.refreshTokenUtil.generateToken(username);
+                Date iatRefreshToken = this.refreshTokenUtil.getExpiresAt(refreshJwt);
+                this.accessRecordRepo.save(
+                        new AccessRecord(userId, ip, accessJwt, iatAccessToken, refreshJwt, iatRefreshToken, new Date(),
+                                Action.LOGIN));
+                return new AuthResponse(accessJwt, refreshJwt);
+            }
+            // ? condition 1.2:
+            // ** if the user has an active session in the current device, do not
+            // ** allow another login attempt (I donot need to check date here because if
+            // ** refresh token was expired it would be dealt in above condition)
+            else if (action.get().equals(Action.LOGIN)) {
+                log.debug("User already has a active session in current device");
+                throw new UnauthorizedAccessException(
+                        "User already has an active session is this device. Either switch to the existing session or logout of the existing session");
+            }
+            // ? condition 1.3:
+            // action will be logout if user had previously logged out of this account in
+            // current device.
+            else {
+                log.debug("user had previously logged out of a session in this current device");
+                String accessJwt = this.accessTokenUtil.generateToken(username);
+                Date iatAccessToken = this.accessTokenUtil.getExpiresAt(accessJwt);
+                String refreshJwt = this.refreshTokenUtil.generateToken(username);
+                Date iatRefreshToken = this.refreshTokenUtil.getExpiresAt(refreshJwt);
+                this.accessRecordRepo.save(
+                        new AccessRecord(userId, ip, accessJwt, iatAccessToken, refreshJwt, iatRefreshToken, new Date(),
+                                Action.LOGIN));
+                return new AuthResponse(accessJwt, refreshJwt);
+            }
+        }
+        // ? condition 3:
+        // action would not be present if user has never logged in previously from
         // current device
-        // action will be login if user has an active session already going in that
-        // device
-        // action will be logout of user had previously logged out of this account in
-        // current device.
-        Optional<Action> action = this.accessRecordRepo.getLastEntryAttempt(userId, ip);
-        log.debug("is action present: {}", action.isPresent());
-        // user already has an active session in the current device
-        if (action.isPresent() && action.get().equals(Action.LOGIN)) {
-            log.debug("User already has a active session in current device");
-            throw new UnauthorizedAccessException(
-                    "User already has an active session is this device. Either switch to the existing session or logout of the existing session");
-        } else {
+        else {
             log.debug("action is not present");
             String accessJwt = this.accessTokenUtil.generateToken(username);
             Date iatAccessToken = this.accessTokenUtil.getExpiresAt(accessJwt);

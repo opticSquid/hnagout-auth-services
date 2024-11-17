@@ -1,7 +1,5 @@
 package com.hangout.core.auth_service.entity.converter;
 
-import java.util.stream.Stream;
-
 import com.hangout.core.auth_service.entity.Action;
 
 import jakarta.persistence.AttributeConverter;
@@ -23,11 +21,11 @@ public class ActionConverter implements AttributeConverter<Action, Integer> {
         if (code == null) {
             return null;
         }
-        return Stream.of(Action.values())
-                .filter(a -> a.getCode().equals(code))
-                .findFirst()
-                .orElseThrow(IllegalArgumentException::new);
-
+        // return Stream.of(Action.values())
+        // .filter(a -> a.getCode().equals(code))
+        // .findFirst()
+        // .orElseThrow(IllegalArgumentException::new);
+        return Action.valueOf(code);
     }
 
 }
