@@ -5,7 +5,7 @@ These are the versions which are officially supported
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.0.2   | :white_check_mark: |
+| 1.1.4   | :white_check_mark: |
 | 0.0.1   | :x:                |
 
 ## Reporting a Vulnerability
