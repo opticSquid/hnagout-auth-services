@@ -50,7 +50,7 @@ hangout:
   loki-server:
     url: http://localhost:3100
   tempo-server:
-    url: http://localhost:4317
+    url: http://localhost:4316
   log:
     path: /home/soumalya/Development/Hangout/core-services/hangout-auth-service/logs
     
