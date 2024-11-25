@@ -73,9 +73,7 @@ hangout:
       refresh: ${REFRESH_TOKEN_SECRET}
   notification-service:
     url: ${NOTIFICATION_SERVICE}
-  loki-server:
-    url: ${LOKI_SERVER}
-  tempo-server:
-    url: ${TEMPO_SERVER}
+  otel-collector:
+    url: ${OTEL_COLLECTOR}
   log:
     path: ${LOG_DIR}

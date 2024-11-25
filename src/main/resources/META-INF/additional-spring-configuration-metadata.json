@@ -26,14 +26,9 @@
       "description": "Topic to send events for account activation mail"
     },
     {
-      "name": "hangout.loki-server.url",
+      "name": "hangout.otel-collector.url",
       "type": "java.lang.String",
-      "description": "URL of Grafana Loki server. It is used to ship logs for observability"
-    },
-    {
-      "name": "hangout.tempo-server.url",
-      "type": "java.lang.String",
-      "description": "URL of Grafana Tempo server. It is used to ship traces for observability"
+      "description": "URL of Open Telemetry collector. It is used to ship telemetry from app to telemetry backends"
     },
     {
       "name": "hangout.log.path",

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -11,14 +12,14 @@
 	</parent>
 	<groupId>com.hangout.core</groupId>
 	<artifactId>hangout-auth-service</artifactId>
-	<version>1.1.5</version>
+	<version>1.1.6</version>
 	<name>hangout-auth-service</name>
 	<description>Microservice for authentication and authorization of users in Hangout</description>
 	<properties>
 		<java.version>21</java.version>
 		<spring-cloud.version>2023.0.3</spring-cloud.version>
 		<spring-doc.version>2.6.0</spring-doc.version>
-		<loki-appender.version>1.5.1</loki-appender.version>
+		<otel-appender.version>2.10.0-alpha</otel-appender.version>
 		<jwt-version>0.12.6</jwt-version>
 	</properties>
 	<dependencies>
@@ -35,7 +36,7 @@
 		</dependency>
 		<dependency>
 			<groupId>io.micrometer</groupId>
-			<artifactId>micrometer-registry-prometheus</artifactId>
+			<artifactId>micrometer-registry-otlp</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>io.micrometer</groupId>
@@ -43,13 +44,16 @@
 		</dependency>
 		<dependency>
 			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-sdk</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
 			<artifactId>opentelemetry-exporter-otlp</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.github.loki4j</groupId>
-			<artifactId>loki-logback-appender</artifactId>
-			<version>${loki-appender.version}</version>
-			<scope>runtime</scope>
+			<groupId>io.opentelemetry.instrumentation</groupId>
+			<artifactId>opentelemetry-logback-appender-1.0</artifactId>
+			<version>${otel-appender.version}</version>
 		</dependency>
 		<!--END
 		Observability
