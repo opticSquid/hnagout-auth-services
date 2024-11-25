@@ -47,9 +47,7 @@ hangout:
       refresh: kTYpg95oeqgnBhfi16DYSe2NT2T6kXPDKGrLeXpSA2rc7Jltt32AtYGPdmsYFoKt0H2_dJj8RPgbP3UGzD6ONSDJOWbbMvSU1MyNDM2xj5ncv2oN1iewNXz6gEyTdeuR3IolmGnPBPFVZR78is6MnS7W7WBpRvQCoaes9l7GhMHf6MhtX4nstm9LkTUx5-MQw4Tg5XTgo82FApVcg1x9hvDno6WTci_gJ9874xsAi5wg9V15cXFTesJ3GJfGf4NTkX9SqqAVG_D08oLOXFAXjvLDYVrl_O_9JMyCBgVEyMV81UMw8v72nYGAfDPy2uH3nTUOTXA4qlijAXOFGxV7kg
   notification-service:
     url: http://localhost:5012
-  loki-server:
-    url: http://localhost:3100
-  tempo-server:
+  otel-collector:
     url: http://localhost:4317
   log:
     path: /home/soumalya/Development/Hangout/core-services/hangout-auth-service/logs
