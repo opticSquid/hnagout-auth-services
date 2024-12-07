@@ -47,9 +47,9 @@ management:
       probability: 1.0
   otlp:
     # configures the endpoint to send OTLP metrics. (Does not support GRPC)
-    #   metrics:
-    #     export:
-    #       url: http://localhost:4318/v1/traces
+    metrics:
+      export:
+        url: ${OTEL_COLLECTOR}/v1/metrics
     tracing:
       compression: gzip
 

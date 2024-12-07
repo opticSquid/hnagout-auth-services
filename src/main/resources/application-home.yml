@@ -25,6 +25,10 @@ logging:
 
 # All traces should be sent to latency analysis tool
 management:
+  otlp:
+    metrics:
+      export:
+        url: http://localhost:4318/v1/metrics
   tracing:
     sampling:
       probability: 1.0

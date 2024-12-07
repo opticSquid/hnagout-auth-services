@@ -93,7 +93,7 @@ public class OpenTelemetryConfig {
         @Bean
         SpanExporter otlpHttpSpanExporter() {
                 return OtlpHttpSpanExporter.builder()
-                                .setEndpoint(collectorUrl + "/v1/spans")
+                                .setEndpoint(collectorUrl + "/v1/traces")
                                 .addHeader("api-key", "value")
                                 .setTimeout(Duration.ofSeconds(10))
                                 .build();
@@ -111,7 +111,7 @@ public class OpenTelemetryConfig {
 
         @Bean
         Sampler traceIdRatioBased() {
-                return Sampler.traceIdRatioBased(0.25);
+                return Sampler.traceIdRatioBased(1);
         }
 
         @Bean
