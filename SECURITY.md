@@ -9,6 +9,7 @@ These are the versions which are officially supported
 | 1.2.2   | :white_check_mark: |
 | <1.0.0  | :x:                |
 
+
 ## Reporting a Vulnerability
 
 You can raise a vulnerability using issues section and describing the vulnurability
