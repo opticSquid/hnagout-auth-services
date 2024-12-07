@@ -7,7 +7,7 @@ spring:
     name: hangout-auth-service
   datasource:
     driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://${CLUSTER_URL}/${DB_NAME}
+    url: jdbc:postgresql://${DB_URL}/${DB_NAME}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
   jpa:
@@ -21,7 +21,7 @@ spring:
     ansi:
       enabled: ALWAYS
   kafka:
-    bootstrap-servers: ${KAFKA_SERVER}   
+    bootstrap-servers: ${KAFKA_SERVER}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -29,17 +29,17 @@ spring:
     #   security.protocol: ${KAFKA_SECURITY_PROTOCOL}
     #   sasl.mechanism: ${KAFKA_SASL_MECHANISM}
     #   sasl.jaas.config: org.apache.kafka.common.security.scram.ScramLoginModule required username="${KAFKA_USER}" password="$(kubectl get secret kafka-user-passwords --namespace persistance -o jsonpath='{.data.client-passwords}' | base64 -d | cut -d , -f 1)";
-        
+
 logging:
   level:
     web: error
     sql: error
-    '[org.springframework.security]': error
-    '[com.hangout.core]': trace
+    "[org.springframework.security]": error
+    "[com.hangout.core]": trace
     # traceID and spanId are predefined MDC keys - we want the logs to include them
   pattern:
     level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
-    
+
 # All traces should be sent to latency analysis tool
 management:
   tracing:
@@ -68,7 +68,7 @@ hangout:
       verification-mail: account-verification
       activation-mail: account-activation
   jwt:
-    secretKey: 
+    secretKey:
       access: ${ACCESS_TOKEN_SECRET}
       refresh: ${REFRESH_TOKEN_SECRET}
   notification-service:
