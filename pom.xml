@@ -11,9 +11,9 @@
 		<!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.hangout.core</groupId>
-	<artifactId>hangout-auth-service</artifactId>
-	<version>1.1.6</version>
-	<name>hangout-auth-service</name>
+	<artifactId>hangout-auth-api</artifactId>
+	<version>1.2.0</version>
+	<name>hangout-auth-api</name>
 	<description>Microservice for authentication and authorization of users in Hangout</description>
 	<properties>
 		<java.version>21</java.version>

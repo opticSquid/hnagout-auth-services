@@ -1,4 +1,4 @@
-# Hangout Auth Service
+# Hangout Auth API
 
 ## Build Checks
 
@@ -9,6 +9,6 @@
 
 ## Introduction
 
-Authentication and Authorization Service for Hangout.
+Authentication and Authorization service provider API for Hangout.
 
 >Work in progress
