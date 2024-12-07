@@ -3,14 +3,14 @@
   "configurations": [
     {
       "type": "java",
-      "name": "Spring Boot-UsersApplication<hangout-auth-service>",
+      "name": "Spring Boot-UsersApplication<hangout-auth-api>",
       "request": "launch",
       "cwd": "${workspaceFolder}",
-      "mainClass": "com.hangout.core.auth_service.UsersApplication",
+      "mainClass": "com.hangout.core.auth_api.UsersApplication",
       "vmArgs": "-Dspring.profiles.active=home",
-      "projectName": "hangout-auth-service",
+      "projectName": "hangout-auth-api",
       "args": "",
       "envFile": "${workspaceFolder}/.env"
-    },
+    }
   ]
 }

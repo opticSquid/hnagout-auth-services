@@ -11,8 +11,8 @@ import org.springframework.core.env.Environment;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.context.propagation.ContextPropagators;
-import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter;
-import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter;
+import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporter;
+import io.opentelemetry.exporter.otlp.http.trace.OtlpHttpSpanExporter;
 import io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.logs.LogRecordProcessor;
@@ -48,7 +48,8 @@ public class OpenTelemetryConfig {
         @Bean
         SdkLoggerProvider otelSdkLoggerProvider(Environment environment,
                         ObjectProvider<LogRecordProcessor> logRecordProcessors) {
-                String applicationName = environment.getProperty("spring.application.name", "application");
+                String applicationName = environment.getProperty("spring.application.name",
+                                "application");
                 Resource springResource = Resource
                                 .create(Attributes.of(ResourceAttributes.SERVICE_NAME, applicationName));
                 SdkLoggerProviderBuilder builder = SdkLoggerProvider.builder()
@@ -61,20 +62,20 @@ public class OpenTelemetryConfig {
         LogRecordProcessor otelLogRecordProcessor() {
                 return BatchLogRecordProcessor
                                 .builder(
-                                                OtlpGrpcLogRecordExporter.builder()
-                                                                .setEndpoint(collectorUrl)
+                                                OtlpHttpLogRecordExporter.builder()
+                                                                .setEndpoint(collectorUrl + "/v1/logs")
                                                                 .build())
                                 .build();
         }
 
         @Bean
         SdkTracerProvider sdkTracerProvider(Resource resource, SpanProcessor batchSpanProcessor,
-                        SpanExporter otlpGrpcSpanExporter, Sampler parentBasedSampler, Sampler traceIdRatioBased,
+                        SpanExporter otlpHttpSpanExporter, Sampler parentBasedSampler, Sampler traceIdRatioBased,
                         SpanLimits spanLimits) {
                 return SdkTracerProvider.builder()
                                 .setResource(resource)
                                 .addSpanProcessor(
-                                                batchSpanProcessor(otlpGrpcSpanExporter))
+                                                batchSpanProcessor(otlpHttpSpanExporter))
                                 .setSampler(parentBasedSampler(traceIdRatioBased))
                                 .setSpanLimits(spanLimits)
                                 .build();
@@ -90,9 +91,9 @@ public class OpenTelemetryConfig {
         }
 
         @Bean
-        SpanExporter otlpGrpcSpanExporter() {
-                return OtlpGrpcSpanExporter.builder()
-                                .setEndpoint(collectorUrl + "/v1/spans")
+        SpanExporter otlpHttpSpanExporter() {
+                return OtlpHttpSpanExporter.builder()
+                                .setEndpoint(collectorUrl + "/v1/traces")
                                 .addHeader("api-key", "value")
                                 .setTimeout(Duration.ofSeconds(10))
                                 .build();
@@ -110,7 +111,7 @@ public class OpenTelemetryConfig {
 
         @Bean
         Sampler traceIdRatioBased() {
-                return Sampler.traceIdRatioBased(0.25);
+                return Sampler.traceIdRatioBased(1);
         }
 
         @Bean
