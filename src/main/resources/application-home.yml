@@ -54,4 +54,4 @@ hangout:
   otel-collector:
     url: http://localhost:4318
   log:
-    path: /home/soumalya/Development/Hangout/core-services/hangout-auth-service/logs
+    path: /home/soumalya/Development/Hangout/core-services/hangout-auth-api/logs
