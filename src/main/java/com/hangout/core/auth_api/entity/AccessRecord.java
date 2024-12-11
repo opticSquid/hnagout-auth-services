@@ -9,6 +9,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,37 +24,36 @@ public class AccessRecord {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private BigInteger id;
     private BigInteger userId;
-    private String ipAddress;
     private String accessToken;
     private ZonedDateTime accessTokenExpiryTime;
     private String refreshToken;
     private ZonedDateTime refreshTokenExpiryTime;
-    private ZonedDateTime lastSeen;
     private Action action;
+    @ManyToOne
+    @JoinColumn(name = "device_id", nullable = false)
+    private Device device;
 
-    public AccessRecord(BigInteger userId, String ipAddress, String accessToken, Date accessTokenExpiryTime,
+    public AccessRecord(BigInteger userId, String accessToken, Date accessTokenExpiryTime,
             String refreshToken,
-            Date refreshTokenExpiryTime, Date lastSeen, Action action) {
+            Date refreshTokenExpiryTime, Action action, Device device) {
         this.userId = userId;
-        this.ipAddress = ipAddress;
         this.accessToken = accessToken;
         this.accessTokenExpiryTime = accessTokenExpiryTime.toInstant().atZone(ZoneOffset.UTC);
         this.refreshToken = refreshToken;
         this.refreshTokenExpiryTime = refreshTokenExpiryTime.toInstant().atZone(ZoneOffset.UTC);
-        this.lastSeen = lastSeen.toInstant().atZone(ZoneOffset.UTC);
         this.action = action;
+        this.device = device;
     }
 
-    public AccessRecord(BigInteger userId, String ipAddress, String accessToken, ZonedDateTime accessTokenExpiryTime,
-            String refreshToken, ZonedDateTime refreshTokenExpiryTime, Date lastSeen, Action action) {
+    public AccessRecord(BigInteger userId, String accessToken, ZonedDateTime accessTokenExpiryTime,
+            String refreshToken, ZonedDateTime refreshTokenExpiryTime, Action action, Device device) {
         this.userId = userId;
-        this.ipAddress = ipAddress;
         this.accessToken = accessToken;
         this.accessTokenExpiryTime = accessTokenExpiryTime;
         this.refreshToken = refreshToken;
         this.refreshTokenExpiryTime = refreshTokenExpiryTime;
-        this.lastSeen = lastSeen.toInstant().atZone(ZoneOffset.UTC);
         this.action = action;
+        this.device = device;
     }
 
 }

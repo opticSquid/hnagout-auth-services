@@ -16,6 +16,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.hangout.core.auth_api.entity.Roles;
 import com.hangout.core.auth_api.filter.JwtFilter;
+import com.hangout.core.auth_api.filter.UserAuthenticationFilter;
 import com.hangout.core.auth_api.service.UserDetailsServiceImpl;
 
 @Configuration
@@ -25,6 +26,8 @@ public class SecurityConfiguration {
 	private UserDetailsServiceImpl userDetailsService;
 	@Autowired
 	private JwtFilter jwtFilter;
+	@Autowired
+	private UserAuthenticationFilter userAuthenticationFilter;
 	@Autowired
 	PasswordEncoder passwordEncoder;
 
@@ -40,7 +43,8 @@ public class SecurityConfiguration {
                         .requestMatchers("v1/admin/**").hasRole(Roles.ADMIN.name())
 						// had to do this just to make actuator work
                         .anyRequest().permitAll())
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+				.addFilterBefore(jwtFilter, UserAuthenticationFilter.class)
+                .addFilterBefore(userAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .build();
