@@ -19,7 +19,7 @@ import com.hangout.core.auth_api.entity.AccessRecord;
 import com.hangout.core.auth_api.entity.Action;
 import com.hangout.core.auth_api.entity.Device;
 import com.hangout.core.auth_api.entity.User;
-import com.hangout.core.auth_api.exceptions.UntrustedDeviceException;
+import com.hangout.core.auth_api.exceptions.UnIndentifiedDeviceException;
 import com.hangout.core.auth_api.exceptions.UnauthorizedAccessException;
 import com.hangout.core.auth_api.repository.AccessRecordRepo;
 import com.hangout.core.auth_api.repository.DeviceRepo;
@@ -68,17 +68,22 @@ class LoginService {
             // user is enabled
             // check if the current device is a trusted device or not
             try {
-                Device trustedDevice = getUserDevice(deviceDetails, user);
-                // get the last login/logout attempt by the user in current device
-                Optional<AccessRecord> session = this.accessRecordRepo.getLastEntryRecord(user.getUserId(),
-                        trustedDevice.getDeviceId());
-                // user had logged in before in the current device and marked it as a trusted
-                // device
-                return userLoggingInToTrustedDevice(session.get(), trustedDevice, user);
-            } catch (UntrustedDeviceException ex) {
+                Device device = getUserDevice(deviceDetails, user);
+                if (device.getIsTrusted()) {
+                    // get the last login/logout attempt by the user in current device
+                    Optional<AccessRecord> session = this.accessRecordRepo.getLastEntryRecord(user.getUserId(),
+                            device.getDeviceId());
+                    // user had logged in before in the current device and marked it as a trusted
+                    // device
+                    return userLoggingInToTrustedDevice(session.get(), device, user);
+                } else {
+                    return userLoggingInAnUntrustedDevice(device, user);
+                }
+            } catch (UnIndentifiedDeviceException ex) {
                 log.info("user logging in a new device");
+                // create a new device object for saving
                 Device newUntrustedDevice = this.deviceUtils.getDevice(deviceDetails, user);
-                return userLoggingInAUntrustedDevice(newUntrustedDevice, user);
+                return userLoggingInAnUnIdentifiedDevice(newUntrustedDevice, user);
             }
         }
     }
@@ -93,16 +98,17 @@ class LoginService {
         Optional<Device> deviceFromDb = this.deviceRepo.findDevice(deviceDetails.screenWidth(),
                 deviceDetails.screenHeight(), deviceDetails.os(), deviceDetails.userAgent(), currentDevice.getCountry(),
                 user.getUserId());
-        if (deviceFromDb.isPresent()) {
+        if (deviceFromDb.isPresent()
+                && this.deviceUtils.calculateDeviceSimilarity(currentDevice, deviceFromDb.get()) >= 70.0) {
             return deviceFromDb.get();
         } else {
-            throw new UntrustedDeviceException("Device was never used by user before");
+            throw new UnIndentifiedDeviceException("Device was never used by user");
         }
     }
 
     private AuthResponse userLoggingInToTrustedDevice(AccessRecord session,
             Device trustedDevice, User user) {
-        Action action = session.getAction();
+        Action action = session.getUserAction();
         ZonedDateTime refreshTokenExpiryTime = session.getRefreshTokenExpiryTime();
         if (action.equals(Action.LOGIN)
                 && refreshTokenExpiryTime.isBefore(ZonedDateTime.now(ZoneOffset.UTC))) {
@@ -149,24 +155,41 @@ class LoginService {
         return new AuthResponse(accessJwt, refreshJwt, "success");
     }
 
-    private AuthResponse userLoggingInAUntrustedDevice(Device newDevice, User user) {
-        // saving new Device
-        newDevice = this.deviceRepo.save(newDevice);
-        String accessJwt = this.accessTokenUtil.generateToken(user.getUsername(), newDevice.getDeviceId());
+    private AuthResponse userLoggingInAnUntrustedDevice(Device untrustedDevice, User user) {
+        String accessJwt = this.accessTokenUtil.generateToken(user.getUsername(), untrustedDevice.getDeviceId());
         Date iatAccessToken = this.accessTokenUtil.getExpiresAt(accessJwt);
         String shortTermRefreshJwt = this.refreshTokenUtil.generateTokenShortTerm(user.getUsername(),
-                newDevice.getDeviceId());
+                untrustedDevice.getDeviceId());
         Date iatRefreshToken = this.refreshTokenUtil.getExpiresAt(shortTermRefreshJwt);
         AccessRecord accessRecord = new AccessRecord(accessJwt, iatAccessToken, shortTermRefreshJwt, iatRefreshToken,
                 Action.LOGIN,
-                newDevice, user);
+                untrustedDevice, user);
         log.debug("new access record: {}", accessRecord);
         accessRecord = this.accessRecordRepo.save(accessRecord);
         user.addAccessRecord(accessRecord);
-        newDevice.addAccessRecord(accessRecord);
-        this.deviceRepo.save(newDevice);
+        untrustedDevice.addAccessRecord(accessRecord);
+        this.deviceRepo.save(untrustedDevice);
         this.userRepo.save(user);
         return new AuthResponse(accessJwt, shortTermRefreshJwt, "untrusted device login");
     }
 
+    private AuthResponse userLoggingInAnUnIdentifiedDevice(Device unIdentifiedDevice, User user) {
+        // saving new Device
+        unIdentifiedDevice = this.deviceRepo.save(unIdentifiedDevice);
+        String accessJwt = this.accessTokenUtil.generateToken(user.getUsername(), unIdentifiedDevice.getDeviceId());
+        Date iatAccessToken = this.accessTokenUtil.getExpiresAt(accessJwt);
+        String shortTermRefreshJwt = this.refreshTokenUtil.generateTokenShortTerm(user.getUsername(),
+                unIdentifiedDevice.getDeviceId());
+        Date iatRefreshToken = this.refreshTokenUtil.getExpiresAt(shortTermRefreshJwt);
+        AccessRecord accessRecord = new AccessRecord(accessJwt, iatAccessToken, shortTermRefreshJwt, iatRefreshToken,
+                Action.LOGIN,
+                unIdentifiedDevice, user);
+        log.debug("new access record: {}", accessRecord);
+        accessRecord = this.accessRecordRepo.save(accessRecord);
+        user.addAccessRecord(accessRecord);
+        unIdentifiedDevice.addAccessRecord(accessRecord);
+        this.deviceRepo.save(unIdentifiedDevice);
+        this.userRepo.save(user);
+        return new AuthResponse(accessJwt, shortTermRefreshJwt, "untrusted device login");
+    }
 }

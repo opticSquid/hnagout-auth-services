@@ -41,8 +41,8 @@ public class AccessService {
     }
 
     @Observed(name = "logout", contextualName = "service")
-    public DefaultResponse logout(String userName, String ip) {
-        return this.logoutService.logout(userName, ip);
+    public DefaultResponse logout(String accessToken, DeviceDetails deviceDetails) {
+        return this.logoutService.logout(accessToken, deviceDetails);
     }
 
     @Observed(name = "check-token-validity", contextualName = "service")

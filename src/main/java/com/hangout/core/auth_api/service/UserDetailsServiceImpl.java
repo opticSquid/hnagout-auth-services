@@ -20,6 +20,7 @@ import com.hangout.core.auth_api.dto.event.VerifyAccountEvent;
 import com.hangout.core.auth_api.dto.request.NewUser;
 import com.hangout.core.auth_api.dto.request.TokenVerificationRequest;
 import com.hangout.core.auth_api.dto.response.AccountVerficationResponse;
+import com.hangout.core.auth_api.entity.Roles;
 import com.hangout.core.auth_api.entity.User;
 import com.hangout.core.auth_api.exceptions.JwtNotValidException;
 import com.hangout.core.auth_api.exceptions.UserNotFoundException;
@@ -103,5 +104,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Observed(name = "delete-account", contextualName = "service")
     public void deleteUser(String username) throws Exception {
         this.userRepo.deleteByUserName(username);
+    }
+
+    public void addNewInternalUser(NewUser newUser) {
+        User user = new User(newUser.username(), newUser.email(), passwordEncoder.encode(newUser.password()));
+        user.setRole(Roles.INTERNAL);
+        user.setEnabled(true);
+        this.userRepo.save(user);
     }
 }

@@ -24,7 +24,7 @@ public class RefreshTokenUtil implements JwtUtil {
     @Observed(name = "generate-token", contextualName = "refresh-token", lowCardinalityKeyValues = { "tenure", "long" })
     public String generateToken(String username, UUID deviceId) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("devieId", deviceId);
+        claims.put("deviceId", deviceId);
         // expiration is 7 days
         return createToken(username, claims, 1000 * 60 * 60 * 24 * 7);
     }

@@ -1,13 +1,13 @@
 package com.hangout.core.auth_api.exceptions;
 
-public class UntrustedDeviceException extends RuntimeException {
+public class UnIndentifiedDeviceException extends RuntimeException {
     private String message;
 
-    public UntrustedDeviceException() {
+    public UnIndentifiedDeviceException() {
         super();
     }
 
-    public UntrustedDeviceException(String message) {
+    public UnIndentifiedDeviceException(String message) {
         this.message = message;
     }
 

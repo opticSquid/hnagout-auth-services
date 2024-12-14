@@ -31,9 +31,10 @@ class TokenValidityCheckerService {
         ip = ip.equals("127.0.0.1") ? "0:0:0:0:0:0:0:1" : ip;
         Optional<User> user = this.userRepo.findByUserName(username);
         if (user.isPresent() && user.get().isEnabled()) {
-            Optional<AccessRecord> latestAccess = this.accessRecordRepo.getLatestAccess(user.get().getUserId(), ip);
+            Optional<AccessRecord> latestAccess = this.accessRecordRepo.getLatestAccessRecord(user.get().getUserId(),
+                    ip);
             // check if the last action of the user in the given device was not logout
-            if (latestAccess.isPresent() && !latestAccess.get().getAction().equals(Action.LOGOUT)) {
+            if (latestAccess.isPresent() && !latestAccess.get().getUserAction().equals(Action.LOGOUT)) {
                 return new PublicUserDetails(username, user.get().getRole());
             } else {
                 throw new UnauthorizedAccessException("User is not authorized to access this route");

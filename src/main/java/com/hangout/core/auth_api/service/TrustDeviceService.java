@@ -14,7 +14,7 @@ import com.hangout.core.auth_api.entity.AccessRecord;
 import com.hangout.core.auth_api.entity.Action;
 import com.hangout.core.auth_api.entity.Device;
 import com.hangout.core.auth_api.entity.User;
-import com.hangout.core.auth_api.exceptions.UntrustedDeviceException;
+import com.hangout.core.auth_api.exceptions.UnIndentifiedDeviceException;
 import com.hangout.core.auth_api.exceptions.UserNotFoundException;
 import com.hangout.core.auth_api.repository.AccessRecordRepo;
 import com.hangout.core.auth_api.repository.DeviceRepo;
@@ -84,7 +84,7 @@ class TrustDeviceService {
                 && this.deviceUtil.calculateDeviceSimilarity(currentDevice, deviceFromDb.get()) >= 70.0) {
             return deviceFromDb.get();
         } else {
-            throw new UntrustedDeviceException("Device being used is different from what was used to login");
+            throw new UnIndentifiedDeviceException("Device being used is different from what was used to login");
         }
     }
 

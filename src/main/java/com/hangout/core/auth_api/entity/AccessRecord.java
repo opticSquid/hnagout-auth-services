@@ -23,14 +23,15 @@ import lombok.NoArgsConstructor;
 public class AccessRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private BigInteger id;
+    private BigInteger recordId;
     @Column(length = 512)
     private String accessToken;
     private ZonedDateTime accessTokenExpiryTime;
     @Column(length = 512)
     private String refreshToken;
     private ZonedDateTime refreshTokenExpiryTime;
-    private Action action;
+    private Action userAction;
+    private ZonedDateTime recordCreatedAt;
     @ManyToOne
     @JoinColumn(name = "deviceId", nullable = false)
     private Device device;
@@ -45,7 +46,8 @@ public class AccessRecord {
         this.accessTokenExpiryTime = accessTokenExpiryTime.toInstant().atZone(ZoneOffset.UTC);
         this.refreshToken = refreshToken;
         this.refreshTokenExpiryTime = refreshTokenExpiryTime.toInstant().atZone(ZoneOffset.UTC);
-        this.action = action;
+        this.userAction = action;
+        this.recordCreatedAt = ZonedDateTime.now(ZoneOffset.UTC);
         this.device = device;
         this.user = user;
     }
@@ -56,7 +58,8 @@ public class AccessRecord {
         this.accessTokenExpiryTime = accessTokenExpiryTime;
         this.refreshToken = refreshToken;
         this.refreshTokenExpiryTime = refreshTokenExpiryTime;
-        this.action = action;
+        this.userAction = action;
+        this.recordCreatedAt = ZonedDateTime.now(ZoneOffset.UTC);
         this.device = device;
         this.user = user;
     }

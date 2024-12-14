@@ -16,7 +16,7 @@ import com.hangout.core.auth_api.entity.AccessRecord;
 import com.hangout.core.auth_api.entity.Action;
 import com.hangout.core.auth_api.entity.Device;
 import com.hangout.core.auth_api.entity.User;
-import com.hangout.core.auth_api.exceptions.UntrustedDeviceException;
+import com.hangout.core.auth_api.exceptions.UnIndentifiedDeviceException;
 import com.hangout.core.auth_api.exceptions.JwtNotValidException;
 import com.hangout.core.auth_api.exceptions.UnauthorizedAccessException;
 import com.hangout.core.auth_api.exceptions.UserNotFoundException;
@@ -90,7 +90,13 @@ class RenewTokenService {
         this.deviceRepo.save(device);
         user.addAccessRecord(newAccessRecord);
         this.userRepo.save(user);
-        return new AuthResponse(newAccessToken, refreshToken, "success");
+        String resposeMessage;
+        if (device.getIsTrusted()) {
+            resposeMessage = "untrusted device token renew";
+        } else {
+            resposeMessage = "success";
+        }
+        return new AuthResponse(newAccessToken, refreshToken, resposeMessage);
     }
 
     private Boolean validateRefreshToken(String refreshToken) {
@@ -111,8 +117,10 @@ class RenewTokenService {
     }
 
     private AccessRecord getLatestAccessRecordAndValidateActiveSession(BigInteger userId, UUID deviceId) {
-        Optional<AccessRecord> latestAccessRecord = this.accessRecordRepo.getLatestAccess(userId, deviceId);
-        if (latestAccessRecord.isPresent() && latestAccessRecord.get().getAction() != Action.LOGOUT) {
+        log.debug("userId: {}, deviceId: {}", userId, deviceId);
+        Optional<AccessRecord> latestAccessRecord = this.accessRecordRepo.getLatestAccessRecord(userId, deviceId);
+        log.debug("latest access record: {}", latestAccessRecord.get().getUserAction());
+        if (latestAccessRecord.isPresent() && latestAccessRecord.get().getUserAction() != Action.LOGOUT) {
             return latestAccessRecord.get();
         } else {
             throw new UnauthorizedAccessException(
@@ -138,7 +146,7 @@ class RenewTokenService {
                 && this.deviceUtil.calculateDeviceSimilarity(currentDevice, deviceFromDb.get()) >= 70.0) {
             return deviceFromDb.get();
         } else {
-            throw new UntrustedDeviceException("Device being used is different from what was used to login");
+            throw new UnIndentifiedDeviceException("Device being used is different from what was used to login");
         }
     }
 }

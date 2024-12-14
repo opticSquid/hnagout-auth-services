@@ -45,9 +45,10 @@ public class UserController {
 	@DeleteMapping("/logout")
 	@Observed(name = "logout", contextualName = "controller")
 	@Operation(summary = "logout of an active session")
-	public ResponseEntity<DefaultResponse> logout(HttpServletRequest req) {
-		Authentication user = getAuthenticatedUser();
-		return new ResponseEntity<>(this.accessService.logout(user.getName(), req.getRemoteAddr()), HttpStatus.OK);
+	public ResponseEntity<DefaultResponse> logout(@RequestHeader("Authorization") String accessToken,
+			HttpServletRequest req) {
+		return new ResponseEntity<>(this.accessService.logout(accessToken.substring(7), getDeviceDetails(req)),
+				HttpStatus.OK);
 	}
 
 	@DeleteMapping
