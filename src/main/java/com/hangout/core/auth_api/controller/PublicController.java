@@ -90,10 +90,4 @@ public class PublicController {
         return new DeviceDetails(ip, os, screenWidth, screenHeight, userAgent);
     }
 
-    @PostMapping("/generate-internal-user")
-    public ResponseEntity<String> postMethodName(@RequestBody NewUser newUser) {
-        this.userDetailsService.addNewInternalUser(newUser);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
 }

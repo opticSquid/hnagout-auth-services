@@ -38,7 +38,8 @@ public class SecurityConfiguration {
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers("/v1/user/**")
 						.authenticated()
-						.requestMatchers("/v1/internal/**").hasRole(Roles.INTERNAL.name()) // Correct role check
+						.requestMatchers("/v1/internal/**").hasAuthority(Roles.INTERNAL.name())
+						.requestMatchers("/v1/admin/**").hasAnyAuthority(Roles.ADMIN.name())
 						.requestMatchers(HttpMethod.OPTIONS).permitAll() // Allow OPTIONS for CORS preflight
 						.anyRequest().permitAll() // All other requests are permitted
 				)
