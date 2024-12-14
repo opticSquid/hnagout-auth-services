@@ -3,6 +3,7 @@ package com.hangout.core.auth_api.utils;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.crypto.SecretKey;
 
@@ -23,8 +24,9 @@ public class AccessTokenUtil implements JwtUtil {
 
     @Override
     @Observed(name = "generate-token", contextualName = "access-token")
-    public String generateToken(String username) {
+    public String generateToken(String username, UUID deviceId) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("deviceId", deviceId);
         // expiration is 5 minutes
         return createToken(username, claims, 1000 * 60 * 5);
     }
@@ -55,6 +57,12 @@ public class AccessTokenUtil implements JwtUtil {
         return extractAllClaims(token).getSubject();
     }
 
+    @Override
+    @Observed(name = "get-device-id", contextualName = "access-token")
+    public UUID getDeviceId(String token) {
+        return UUID.fromString((String) extractAllClaims(token).getOrDefault("deviceId", null));
+    }
+
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(ACCESS_SECRET_KEY.getBytes());
     }
@@ -83,4 +91,5 @@ public class AccessTokenUtil implements JwtUtil {
                 .parseSignedClaims(token)
                 .getPayload();
     }
+
 }

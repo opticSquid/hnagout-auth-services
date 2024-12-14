@@ -81,6 +81,8 @@ hangout:
       refresh: ${REFRESH_TOKEN_SECRET}
   notification-service:
     url: ${NOTIFICATION_SERVICE}
+  ip-api:
+    url: ${IP_API_URL}
   otel-collector:
     url: ${OTEL_COLLECTOR}
   log:

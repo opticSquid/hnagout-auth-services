@@ -25,24 +25,26 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        String authorizationHeader = request.getHeader("Authorization");
-        log.debug("Authorization Token received: {}", authorizationHeader);
-        String jwt = null;
-        // try to extract jwt token from headers
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            jwt = authorizationHeader.substring(7);
-            log.debug("extracted jwt: {}", jwt);
-        } else {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return;
+        if (request.getRequestURI().contains("/v1/user/") || request.getRequestURI().contains("/v1/internal/")) {
+            log.info("Filtering request through JWT Filter");
+            String authorizationHeader = request.getHeader("Authorization");
+            log.debug("Authorization Token received: {}", authorizationHeader);
+            String jwt = null;
+            // try to extract jwt token from headers
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                jwt = authorizationHeader.substring(7);
+                log.debug("extracted jwt: {}", jwt);
+            } else {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                return;
+            }
+            // validate the jwt
+            if (!this.accessTokenUtil.validateToken(jwt)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
         }
-        // validate the jwt
-        if (this.accessTokenUtil.validateToken(jwt)) {
-            filterChain.doFilter(request, response);
-        } else {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return;
-        }
+        filterChain.doFilter(request, response);
     }
 
 }

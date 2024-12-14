@@ -1,6 +1,7 @@
 package com.hangout.core.auth_api.entity;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -11,10 +12,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.hangout.core.auth_api.dto.response.DeviceDetails;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -43,8 +44,11 @@ public class User implements UserDetails {
 	@NonNull
 	@Length(min = 8)
 	private String password;
-	@OneToMany(mappedBy = "user")
+	@JsonIgnore
+	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
 	private List<Device> devices;
+	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+	private List<AccessRecord> accessRecords;
 	@JsonIgnore
 	private Roles role;
 	@JsonIgnore
@@ -73,8 +77,17 @@ public class User implements UserDetails {
 		return this.enabled;
 	}
 
-	public void addNewDevice(String os, Integer screenWidth, Integer screenHeight, String userAgent,
-			DeviceDetails deviceDetails) {
-		this.devices.add(new Device(os, screenWidth, screenHeight, userAgent, deviceDetails, this));
+	public void addNewDevice(Device device) {
+		if (this.devices == null) {
+			this.devices = new ArrayList<>();
+		}
+		this.devices.add(device);
+	}
+
+	public void addAccessRecord(AccessRecord accessRecord) {
+		if (this.accessRecords == null) {
+			this.accessRecords = new ArrayList<>();
+		}
+		this.accessRecords.add(accessRecord);
 	}
 }

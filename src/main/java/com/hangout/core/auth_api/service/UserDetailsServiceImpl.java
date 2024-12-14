@@ -67,7 +67,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Transactional
-    @Observed(name = "verify-emal", contextualName = "service")
+    @Observed(name = "verify-email", contextualName = "service")
     public String verifyToken(String token) {
         try {
             ResponseEntity<AccountVerficationResponse> res = restClient

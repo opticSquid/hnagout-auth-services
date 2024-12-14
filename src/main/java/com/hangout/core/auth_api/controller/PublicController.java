@@ -8,7 +8,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.hangout.core.auth_api.dto.request.ExistingUser;
+import com.hangout.core.auth_api.dto.request.DeviceDetails;
+import com.hangout.core.auth_api.dto.request.ExistingUserCreds;
 import com.hangout.core.auth_api.dto.request.NewUser;
 import com.hangout.core.auth_api.dto.request.RenewToken;
 import com.hangout.core.auth_api.dto.response.AuthResponse;
@@ -60,18 +61,33 @@ public class PublicController {
     @PostMapping("/login")
     @Observed(name = "login", contextualName = "controller")
     @Operation(summary = "login exisiting user")
-    public ResponseEntity<AuthResponse> login(@RequestBody ExistingUser user, HttpServletRequest request) {
-        String ip = request.getRemoteAddr();
-        AuthResponse res = this.accessService.login(user, ip);
-        return new ResponseEntity<>(res, HttpStatus.OK);
+    public ResponseEntity<AuthResponse> login(@RequestBody ExistingUserCreds user, HttpServletRequest request) {
+        AuthResponse res = this.accessService.login(user, getDeviceDetails(request));
+        if (res.message().equals("success")) {
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        } else if (res.message().equals("user blocked")) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        } else {
+            return new ResponseEntity<>(res, HttpStatus.TEMPORARY_REDIRECT);
+        }
     }
 
     @PostMapping("/renew")
     @Observed(name = "renew-token", contextualName = "controller")
     @Operation(summary = "renew access token given a refresh token if you have an active session")
-    public ResponseEntity<AuthResponse> postMethodName(@RequestBody RenewToken tokenReq, HttpServletRequest req) {
-        return new ResponseEntity<>(this.accessService.renewToken(tokenReq.token(), req.getRemoteAddr()),
+    public ResponseEntity<AuthResponse> renewToken(@RequestBody RenewToken tokenReq, HttpServletRequest request) {
+        AuthResponse authResponse = this.accessService.renewToken(tokenReq.token(), getDeviceDetails(request));
+        return new ResponseEntity<>(authResponse,
                 HttpStatus.OK);
+    }
+
+    private DeviceDetails getDeviceDetails(HttpServletRequest request) {
+        String ip = request.getRemoteAddr();
+        String os = request.getHeader("OS");
+        Integer screenWidth = Integer.parseInt(request.getHeader("Screen-Width"));
+        Integer screenHeight = Integer.parseInt(request.getHeader("Screen-Height"));
+        String userAgent = request.getHeader("User-Agent");
+        return new DeviceDetails(ip, os, screenWidth, screenHeight, userAgent);
     }
 
 }

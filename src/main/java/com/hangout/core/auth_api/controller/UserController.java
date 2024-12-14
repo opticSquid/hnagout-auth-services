@@ -6,11 +6,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.hangout.core.auth_api.dto.request.PublicUserDetails;
+import com.hangout.core.auth_api.dto.request.DeviceDetails;
+import com.hangout.core.auth_api.dto.response.AuthResponse;
 import com.hangout.core.auth_api.dto.response.DefaultResponse;
 import com.hangout.core.auth_api.service.AccessService;
 import com.hangout.core.auth_api.service.UserDetailsServiceImpl;
@@ -31,13 +33,13 @@ public class UserController {
 	@Autowired
 	private AccessService accessService;
 
-	@GetMapping("/validate")
-	@Observed(name = "validate-token", contextualName = "controller")
-	@Operation(summary = "check validity of access token")
-	public ResponseEntity<PublicUserDetails> validateAccessToken(HttpServletRequest request) {
-		return new ResponseEntity<>(
-				this.accessService.checkTokenValidity(getAuthenticatedUser().getName(), request.getRemoteAddr()),
-				HttpStatus.OK);
+	@PostMapping("/trust-device")
+	@Observed(name = "trust-device", contextualName = "controller")
+	@Operation(summary = "update device details to trust the current device and unlock all functionalities")
+	public ResponseEntity<AuthResponse> trustDevice(@RequestHeader("Authorization") String accessToken,
+			HttpServletRequest request) {
+		AuthResponse response = this.accessService.trustDevice(accessToken.substring(7), getDeviceDetails(request));
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
 	@DeleteMapping("/logout")
@@ -65,5 +67,14 @@ public class UserController {
 
 	private Authentication getAuthenticatedUser() {
 		return SecurityContextHolder.getContext().getAuthentication();
+	}
+
+	private DeviceDetails getDeviceDetails(HttpServletRequest request) {
+		String ip = request.getRemoteAddr();
+		String os = request.getHeader("OS");
+		Integer screenWidth = Integer.parseInt(request.getHeader("Screen-Width"));
+		Integer screenHeight = Integer.parseInt(request.getHeader("Screen-Height"));
+		String userAgent = request.getHeader("User-Agent");
+		return new DeviceDetails(ip, os, screenWidth, screenHeight, userAgent);
 	}
 }
