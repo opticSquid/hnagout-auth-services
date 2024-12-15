@@ -1,18 +1,23 @@
 package com.hangout.core.auth_api.service;
 
+import java.math.BigInteger;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.hangout.core.auth_api.dto.request.PublicUserDetails;
-import com.hangout.core.auth_api.entity.AccessRecord;
-import com.hangout.core.auth_api.entity.Action;
+import com.hangout.core.auth_api.dto.request.UserValidationRequest;
+import com.hangout.core.auth_api.entity.Device;
 import com.hangout.core.auth_api.entity.User;
-import com.hangout.core.auth_api.exceptions.UnauthorizedAccessException;
+import com.hangout.core.auth_api.exceptions.JwtNotValidException;
+import com.hangout.core.auth_api.exceptions.UnIndentifiedDeviceException;
 import com.hangout.core.auth_api.exceptions.UserNotFoundException;
-import com.hangout.core.auth_api.repository.AccessRecordRepo;
+import com.hangout.core.auth_api.repository.DeviceRepo;
 import com.hangout.core.auth_api.repository.UserRepo;
+import com.hangout.core.auth_api.utils.JwtUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,27 +25,52 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 class TokenValidityCheckerService {
     @Autowired
+    @Qualifier("accessTokenUtil")
+    private JwtUtil accessTokenUtil;
+    @Autowired
     private UserRepo userRepo;
     @Autowired
-    private AccessRecordRepo accessRecordRepo;
+    private DeviceRepo deviceRepo;
 
-    public PublicUserDetails checkTokenValidity(String username, String ip) {
-        // get user from database
-        log.debug("Username: {}, ip: {}", username, ip);
-        // ! for dev only
-        ip = ip.equals("127.0.0.1") ? "0:0:0:0:0:0:0:1" : ip;
-        Optional<User> user = this.userRepo.findByUserName(username);
-        if (user.isPresent() && user.get().isEnabled()) {
-            Optional<AccessRecord> latestAccess = this.accessRecordRepo.getLatestAccessRecord(user.get().getUserId(),
-                    ip);
-            // check if the last action of the user in the given device was not logout
-            if (latestAccess.isPresent() && !latestAccess.get().getUserAction().equals(Action.LOGOUT)) {
-                return new PublicUserDetails(username, user.get().getRole());
+    public PublicUserDetails checkTokenValidity(UserValidationRequest validationRequest) {
+        String acessToken = validateAndExtractAccessToken(validationRequest.accessToken());
+        String username = this.accessTokenUtil.getUsername(acessToken);
+        UUID deviceId = this.accessTokenUtil.getDeviceId(acessToken);
+        User user = this.findEnabledUser(username);
+        Device device = findDevice(user.getUserId(), deviceId);
+        return new PublicUserDetails(username, user.getRole(), device.getIsTrusted());
+
+    }
+
+    private String validateAndExtractAccessToken(String accessToken) {
+        if (accessToken != null && accessToken.startsWith("Bearer ")) {
+            String jwt = accessToken.substring(7);
+            if (this.accessTokenUtil.validateToken(accessToken)) {
+                return jwt;
             } else {
-                throw new UnauthorizedAccessException("User is not authorized to access this route");
+                throw new JwtNotValidException("The incoming access token for token validation is expired");
             }
         } else {
-            throw new UserNotFoundException("User indicated by the token was not found");
+            throw new JwtNotValidException("Access token is not valid for the user incoming for token validation");
+        }
+    }
+
+    private User findEnabledUser(String username) {
+        Optional<User> user = this.userRepo.findByUserName(username);
+        if (user.isPresent() && user.get().isEnabled() == true) {
+            return user.get();
+        } else {
+            throw new UserNotFoundException(
+                    "The incoming user for token validation is either not found in database or is not enabled");
+        }
+    }
+
+    private Device findDevice(BigInteger userId, UUID deviceId) {
+        Optional<Device> deviceFromDb = this.deviceRepo.validateDeviceOwnership(deviceId, userId);
+        if (deviceFromDb.isPresent()) {
+            return deviceFromDb.get();
+        } else {
+            throw new UnIndentifiedDeviceException("the incoming device does not belong to the incoming user");
         }
     }
 }

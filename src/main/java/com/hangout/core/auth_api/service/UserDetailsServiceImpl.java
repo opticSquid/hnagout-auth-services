@@ -18,7 +18,7 @@ import org.springframework.web.client.RestClientResponseException;
 import com.hangout.core.auth_api.dto.event.AccountActivationMailEvent;
 import com.hangout.core.auth_api.dto.event.VerifyAccountEvent;
 import com.hangout.core.auth_api.dto.request.NewUser;
-import com.hangout.core.auth_api.dto.request.TokenVerificationRequest;
+import com.hangout.core.auth_api.dto.request.UserValidationRequest;
 import com.hangout.core.auth_api.dto.response.AccountVerficationResponse;
 import com.hangout.core.auth_api.entity.Roles;
 import com.hangout.core.auth_api.entity.User;
@@ -75,7 +75,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     .post()
                     .uri(notificationService + "/verify-token")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new TokenVerificationRequest(token))
+                    .body(new UserValidationRequest(token))
                     .retrieve()
                     .toEntity(AccountVerficationResponse.class);
             log.debug("response recieved from notification service: {}", res);

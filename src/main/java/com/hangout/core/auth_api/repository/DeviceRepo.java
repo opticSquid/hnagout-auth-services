@@ -15,4 +15,7 @@ public interface DeviceRepo extends JpaRepository<Device, UUID> {
     Optional<Device> findDevice(@Param("screenWidth") Integer screenWidth, @Param("screenHeight") Integer screenHeight,
             @Param("os") String os, @Param("userAgent") String userAgent, @Param("country") String country,
             @Param("userId") BigInteger userId);
+
+    @Query(value = "select * from devices where device_id = :deviceId and user_id = :userId", nativeQuery = true)
+    Optional<Device> validateDeviceOwnership(@Param("deviceId") UUID deviceId, @Param("userId") BigInteger userId);
 }
