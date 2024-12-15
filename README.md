@@ -11,4 +11,4 @@
 
 Authentication and Authorization service provider API for Hangout.
 
->Work in progress
+This service can maintain multi device logins for every user including untrusted sessions where only limited capability of the whole platform will be enabled. It handles from signup to login to renewing access from time to time to letting other services validate the user to let them do tasks which require to check if the user is valid. Authorization is done through JWT tokens which is issued per device basis so that every user can maintain simultaneous login sessions in multiple devices. It also has the capability to track user devices without invading privacy
