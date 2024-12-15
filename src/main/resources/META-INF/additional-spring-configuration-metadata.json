@@ -39,6 +39,11 @@
       "name": "hangout.ip-api.url",
       "type": "java.lang.String",
       "description": "Service used to get details about a device using ip address"
+    },
+    {
+      "name": "hangout.internal-services.origin",
+      "type": "java.util.String",
+      "description": "The comma seperated list of the origins of internal services that would communicate with this service"
     }
   ]
 }

@@ -49,7 +49,8 @@ class RenewTokenService {
     @Autowired
     private DeviceRepo deviceRepo;
 
-    @Observed(name = "renew-token", contextualName = "renew-token-service")
+    @Observed(name = "renew-token", contextualName = "renew-token-service", lowCardinalityKeyValues = { "service",
+            "user" })
     @Transactional
     public AuthResponse renewToken(String refreshToken, DeviceDetails deviceDetails) {
         log.info("refreshToken: {}", refreshToken, deviceDetails);
@@ -92,9 +93,9 @@ class RenewTokenService {
         this.userRepo.save(user);
         String resposeMessage;
         if (device.getIsTrusted()) {
-            resposeMessage = "untrusted device token renew";
-        } else {
             resposeMessage = "success";
+        } else {
+            resposeMessage = "untrusted device token renew";
         }
         return new AuthResponse(newAccessToken, refreshToken, resposeMessage);
     }

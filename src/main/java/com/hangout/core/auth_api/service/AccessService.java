@@ -5,8 +5,6 @@ import org.springframework.stereotype.Service;
 
 import com.hangout.core.auth_api.dto.request.DeviceDetails;
 import com.hangout.core.auth_api.dto.request.ExistingUserCreds;
-import com.hangout.core.auth_api.dto.request.PublicUserDetails;
-import com.hangout.core.auth_api.dto.request.UserValidationRequest;
 import com.hangout.core.auth_api.dto.response.AuthResponse;
 import com.hangout.core.auth_api.dto.response.DefaultResponse;
 
@@ -21,8 +19,6 @@ public class AccessService {
     private LoginService loginService;
     @Autowired
     private RenewTokenService renewTokenService;
-    @Autowired
-    private TokenValidityCheckerService tokenValidityCheckerService;
     @Autowired
     private LogoutService logoutService;
     @Autowired
@@ -44,11 +40,6 @@ public class AccessService {
     @Observed(name = "logout", contextualName = "service")
     public DefaultResponse logout(String accessToken, DeviceDetails deviceDetails) {
         return this.logoutService.logout(accessToken, deviceDetails);
-    }
-
-    @Observed(name = "check-token-validity", contextualName = "service")
-    public PublicUserDetails checkTokenValidity(UserValidationRequest validationRequest) {
-        return this.tokenValidityCheckerService.checkTokenValidity(validationRequest);
     }
 
     @Observed(name = "trust-device", contextualName = "service")

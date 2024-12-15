@@ -45,7 +45,7 @@ class TokenValidityCheckerService {
     private String validateAndExtractAccessToken(String accessToken) {
         if (accessToken != null && accessToken.startsWith("Bearer ")) {
             String jwt = accessToken.substring(7);
-            if (this.accessTokenUtil.validateToken(accessToken)) {
+            if (this.accessTokenUtil.validateToken(jwt)) {
                 return jwt;
             } else {
                 throw new JwtNotValidException("The incoming access token for token validation is expired");

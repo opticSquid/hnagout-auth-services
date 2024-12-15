@@ -87,3 +87,5 @@ hangout:
     url: ${OTEL_COLLECTOR}
   log:
     path: ${LOG_DIR}
+  internal-services:
+    origin: ${INTERNAL_SERVICES_ORIGIN}

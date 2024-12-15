@@ -34,7 +34,7 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        if (request.getRequestURI().contains("/v1/user/") || request.getRequestURI().contains("/v1/internal/")
+        if (request.getRequestURI().contains("/v1/user/")
                 || request.getRequestURI().contains("/v1/admin/")) {
             String authorizationHeader = request.getHeader("Authorization");
             String jwt = authorizationHeader.substring(7);

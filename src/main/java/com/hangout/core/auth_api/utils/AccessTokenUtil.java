@@ -34,9 +34,10 @@ public class AccessTokenUtil implements JwtUtil {
     @Override
     @Observed(name = "validate-token", contextualName = "access-token")
     public Boolean validateToken(String token) {
-        log.info("Validating access token");
+        log.debug("Validating access token: {}", token);
         if (!token.isEmpty()) {
             Date expirationTime = this.extractAllClaims(token).getExpiration();
+            log.debug("token expiration: {}", expirationTime);
             // check if the expirtation is in past of current instant
             return !expirationTime.before(new Date());
         } else {

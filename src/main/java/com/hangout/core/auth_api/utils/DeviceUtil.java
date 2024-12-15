@@ -81,7 +81,9 @@ public class DeviceUtil {
      */
     @SuppressWarnings("null")
     public Device getDevice(DeviceDetails deviceDetails, User user) {
-        if (deviceDetails.ip().startsWith("0") || deviceDetails.ip().startsWith("172")
+        if (deviceDetails.ip().startsWith("0") || deviceDetails.ip().startsWith("127")
+                || deviceDetails.ip().startsWith("10")
+                || deviceDetails.ip().startsWith("172")
                 || deviceDetails.ip().startsWith("192")) {
             return new Device(deviceDetails,
                     new IpDetails("success", "India", "IN", "WB", "West Bengal", "Kolkata", 700156, 22.51, 82.685,

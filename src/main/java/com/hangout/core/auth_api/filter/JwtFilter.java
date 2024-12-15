@@ -25,8 +25,7 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        if (request.getRequestURI().contains("/v1/user/") || request.getRequestURI().contains("/v1/internal/")
-                || request.getRequestURI().contains("/v1/admin/")) {
+        if (request.getRequestURI().contains("/v1/user/") || request.getRequestURI().contains("/v1/admin/")) {
             log.info("Filtering request through JWT Filter");
             String authorizationHeader = request.getHeader("Authorization");
             log.debug("Authorization Token received: {}", authorizationHeader);
