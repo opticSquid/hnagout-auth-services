@@ -17,7 +17,7 @@ logging:
   level:
     web: debug
     sql: error
-    "[org.springframework.security]": error
+    "[org.springframework.security]": trace
     "[com.hangout.core]": trace
     # traceID and spanId are predefined MDC keys - we want the logs to include them
   pattern:
@@ -51,7 +51,11 @@ hangout:
       refresh: kTYpg95oeqgnBhfi16DYSe2NT2T6kXPDKGrLeXpSA2rc7Jltt32AtYGPdmsYFoKt0H2_dJj8RPgbP3UGzD6ONSDJOWbbMvSU1MyNDM2xj5ncv2oN1iewNXz6gEyTdeuR3IolmGnPBPFVZR78is6MnS7W7WBpRvQCoaes9l7GhMHf6MhtX4nstm9LkTUx5-MQw4Tg5XTgo82FApVcg1x9hvDno6WTci_gJ9874xsAi5wg9V15cXFTesJ3GJfGf4NTkX9SqqAVG_D08oLOXFAXjvLDYVrl_O_9JMyCBgVEyMV81UMw8v72nYGAfDPy2uH3nTUOTXA4qlijAXOFGxV7kg
   notification-service:
     url: http://localhost:5012
+  ip-api:
+    url: http://ip-api.com
   otel-collector:
     url: http://localhost:4318
   log:
     path: /home/soumalya/Development/Hangout/core-services/hangout-auth-api/logs
+  internal-services:
+    origin: "localhost"

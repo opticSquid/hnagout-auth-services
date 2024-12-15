@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import com.hangout.core.auth_api.exceptions.UnIndentifiedDeviceException;
 import com.hangout.core.auth_api.exceptions.JwtNotValidException;
 import com.hangout.core.auth_api.exceptions.UnauthorizedAccessException;
 import com.hangout.core.auth_api.exceptions.UserNotFoundException;
@@ -34,6 +35,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
 		problem.setTitle("Access Denied");
 		return problem;
+	}
+
+	@ExceptionHandler(UnIndentifiedDeviceException.class)
+	public ProblemDetail exceptionHandler(UnIndentifiedDeviceException ex) {
+		ProblemDetail probelm = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
+		probelm.setTitle("Untrusted Device");
+		return probelm;
 	}
 
 	// Spring generated exceptions

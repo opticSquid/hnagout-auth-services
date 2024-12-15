@@ -3,6 +3,7 @@ package com.hangout.core.auth_api.utils;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.crypto.SecretKey;
 
@@ -20,11 +21,21 @@ public class RefreshTokenUtil implements JwtUtil {
     private String REFRESH_SECRET_KEY;
 
     @Override
-    @Observed(name = "generate-token", contextualName = "refresh-token")
-    public String generateToken(String username) {
+    @Observed(name = "generate-token", contextualName = "refresh-token", lowCardinalityKeyValues = { "tenure", "long" })
+    public String generateToken(String username, UUID deviceId) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("deviceId", deviceId);
         // expiration is 7 days
         return createToken(username, claims, 1000 * 60 * 60 * 24 * 7);
+    }
+
+    @Observed(name = "generate-token", contextualName = "refresh-token", lowCardinalityKeyValues = { "tenure",
+            "short" })
+    public String generateTokenShortTerm(String username, UUID deviceId) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("deviceId", deviceId);
+        // expiration is 10 minutes
+        return createToken(username, claims, 1000 * 60 * 10);
     }
 
     @Override
@@ -45,6 +56,12 @@ public class RefreshTokenUtil implements JwtUtil {
     @Observed(name = "get-username", contextualName = "refresh-token")
     public String getUsername(String token) {
         return this.extractAllClaims(token).getSubject();
+    }
+
+    @Override
+    @Observed(name = "get-device-id", contextualName = "refresh-token")
+    public UUID getDeviceId(String token) {
+        return UUID.fromString((String) extractAllClaims(token).getOrDefault("deviceId", null));
     }
 
     private SecretKey getSigningKey() {
@@ -75,5 +92,4 @@ public class RefreshTokenUtil implements JwtUtil {
                 .parseSignedClaims(token)
                 .getPayload();
     }
-
 }

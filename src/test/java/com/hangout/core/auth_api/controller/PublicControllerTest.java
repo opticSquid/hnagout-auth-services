@@ -6,12 +6,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.Date;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,11 +32,15 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+import com.hangout.core.auth_api.dto.request.DeviceDetails;
 import com.hangout.core.auth_api.entity.AccessRecord;
 import com.hangout.core.auth_api.entity.Action;
+import com.hangout.core.auth_api.entity.Device;
 import com.hangout.core.auth_api.entity.User;
 import com.hangout.core.auth_api.repository.AccessRecordRepo;
+import com.hangout.core.auth_api.repository.DeviceRepo;
 import com.hangout.core.auth_api.repository.UserRepo;
+import com.hangout.core.auth_api.utils.DeviceUtil;
 import com.hangout.core.auth_api.utils.JwtUtil;
 
 import jakarta.transaction.Transactional;
@@ -50,10 +53,6 @@ import lombok.extern.slf4j.Slf4j;
 public class PublicControllerTest {
     private MockMvc mockMvc;
     @Autowired
-    private UserRepo userRepository;
-    @Autowired
-    private AccessRecordRepo accessRepo;
-    @Autowired
     PasswordEncoder passwordEncoder;
     @Autowired
     private WebApplicationContext context;
@@ -63,18 +62,31 @@ public class PublicControllerTest {
     @Autowired
     @Qualifier("refreshTokenUtil")
     private JwtUtil refreshTokenUtil;
+    @Autowired
+    private DeviceUtil deviceUtil;
+    @Autowired
+    private UserRepo userRepository;
+    @Autowired
+    private AccessRecordRepo accessRepo;
+    @Autowired
+    private DeviceRepo deviceRepo;
 
     @Container
     @ServiceConnection
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
     @Container
-    static final KafkaContainer kafka = new KafkaContainer(
-            DockerImageName.parse("confluentinc/cp-kafka:7.4.6")).withKraft()
+    private static final KafkaContainer kafka = new KafkaContainer(
+            DockerImageName.parse("confluentinc/cp-kafka:7.8.0")).withKraft()
             .withEnv("KAFKA_AUTO_CREATE_TOPICS_ENABLE", "true");
 
     @DynamicPropertySource
     static void overrideProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
+    }
+
+    @AfterAll
+    static void destruct() {
+        kafka.close();
     }
 
     @BeforeEach
@@ -157,13 +169,15 @@ public class PublicControllerTest {
         String userName = "testUser";
         String email = "test@test.com";
         String password = "a1@bcdefgh456";
-        String accToken = this.accessTokenUtil.generateToken(userName);
-        ZonedDateTime accTokenExpiry = this.accessTokenUtil.getExpiresAt(accToken).toInstant().atZone(ZoneOffset.UTC);
-        String refToken = this.refreshTokenUtil.generateToken(userName);
-        ZonedDateTime refTokenExpiry = this.refreshTokenUtil.getExpiresAt(refToken).toInstant().atZone(ZoneOffset.UTC);
         User user = setupUser(userName, email, password);
-        addLoginRecord(user.getUserId(), "127.0.0.1", accToken, accTokenExpiry.plusSeconds(30), refToken,
-                refTokenExpiry);
+        Device device = this.deviceUtil
+                .getDevice(new DeviceDetails("127.0.0.1", "ubuntu/linux", 1920, 1080, "hangout/test"), user);
+        device = this.deviceRepo.save(device);
+        String accToken = this.accessTokenUtil.generateToken(userName, device.getDeviceId());
+        ZonedDateTime accTokenExpiry = this.accessTokenUtil.getExpiresAt(accToken).toInstant().atZone(ZoneOffset.UTC);
+        String refToken = this.refreshTokenUtil.generateToken(userName, device.getDeviceId());
+        ZonedDateTime refTokenExpiry = this.refreshTokenUtil.getExpiresAt(refToken).toInstant().atZone(ZoneOffset.UTC);
+        addLoginRecord(accToken, accTokenExpiry.plusSeconds(30), refToken, refTokenExpiry, device, user);
         try {
             this.mockMvc.perform(post("/v1/public/renew").contentType(MediaType.APPLICATION_JSON)
                     .characterEncoding(Charset.defaultCharset())
@@ -194,12 +208,12 @@ public class PublicControllerTest {
         return user;
     }
 
-    private AccessRecord addLoginRecord(BigInteger userId, String ipAddress, String accToken,
+    private AccessRecord addLoginRecord(String accToken,
             ZonedDateTime accTokenExpiry,
-            String refToken, ZonedDateTime refTokenExpiry) {
-        AccessRecord record = this.accessRepo.save(new AccessRecord(userId, ipAddress, accToken,
+            String refToken, ZonedDateTime refTokenExpiry, Device device, User user) {
+        AccessRecord record = this.accessRepo.save(new AccessRecord(accToken,
                 accTokenExpiry, refToken,
-                refTokenExpiry, new Date(), Action.LOGIN));
+                refTokenExpiry, Action.LOGIN, device, user));
         log.debug("[TEST] login record added to db: {}", record);
         return record;
     }

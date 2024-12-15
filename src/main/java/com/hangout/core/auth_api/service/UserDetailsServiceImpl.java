@@ -18,8 +18,9 @@ import org.springframework.web.client.RestClientResponseException;
 import com.hangout.core.auth_api.dto.event.AccountActivationMailEvent;
 import com.hangout.core.auth_api.dto.event.VerifyAccountEvent;
 import com.hangout.core.auth_api.dto.request.NewUser;
-import com.hangout.core.auth_api.dto.request.TokenVerificationRequest;
+import com.hangout.core.auth_api.dto.request.UserValidationRequest;
 import com.hangout.core.auth_api.dto.response.AccountVerficationResponse;
+import com.hangout.core.auth_api.entity.Roles;
 import com.hangout.core.auth_api.entity.User;
 import com.hangout.core.auth_api.exceptions.JwtNotValidException;
 import com.hangout.core.auth_api.exceptions.UserNotFoundException;
@@ -67,14 +68,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Transactional
-    @Observed(name = "verify-emal", contextualName = "service")
+    @Observed(name = "verify-email", contextualName = "service")
     public String verifyToken(String token) {
         try {
             ResponseEntity<AccountVerficationResponse> res = restClient
                     .post()
                     .uri(notificationService + "/verify-token")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new TokenVerificationRequest(token))
+                    .body(new UserValidationRequest(token))
                     .retrieve()
                     .toEntity(AccountVerficationResponse.class);
             log.debug("response recieved from notification service: {}", res);
@@ -103,5 +104,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Observed(name = "delete-account", contextualName = "service")
     public void deleteUser(String username) throws Exception {
         this.userRepo.deleteByUserName(username);
+    }
+
+    public void addNewInternalUser(NewUser newUser) {
+        User user = new User(newUser.username(), newUser.email(), passwordEncoder.encode(newUser.password()));
+        user.setRole(Roles.INTERNAL);
+        user.setEnabled(true);
+        this.userRepo.save(user);
     }
 }

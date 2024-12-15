@@ -1,7 +1,9 @@
 package com.hangout.core.auth_api.entity;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import org.hibernate.validator.constraints.Length;
@@ -13,9 +15,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import lombok.Data;
@@ -40,6 +44,11 @@ public class User implements UserDetails {
 	@NonNull
 	@Length(min = 8)
 	private String password;
+	@JsonIgnore
+	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+	private List<Device> devices;
+	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+	private List<AccessRecord> accessRecords;
 	@JsonIgnore
 	private Roles role;
 	@JsonIgnore
@@ -66,5 +75,19 @@ public class User implements UserDetails {
 	@Override
 	public boolean isEnabled() {
 		return this.enabled;
+	}
+
+	public void addNewDevice(Device device) {
+		if (this.devices == null) {
+			this.devices = new ArrayList<>();
+		}
+		this.devices.add(device);
+	}
+
+	public void addAccessRecord(AccessRecord accessRecord) {
+		if (this.accessRecords == null) {
+			this.accessRecords = new ArrayList<>();
+		}
+		this.accessRecords.add(accessRecord);
 	}
 }

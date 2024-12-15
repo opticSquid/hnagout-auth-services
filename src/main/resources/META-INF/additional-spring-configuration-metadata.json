@@ -34,6 +34,16 @@
       "name": "hangout.log.path",
       "type": "java.lang.String",
       "description": "Log Directory where ogs will be permanently stored"
+    },
+    {
+      "name": "hangout.ip-api.url",
+      "type": "java.lang.String",
+      "description": "Service used to get details about a device using ip address"
+    },
+    {
+      "name": "hangout.internal-services.origin",
+      "type": "java.util.String",
+      "description": "The comma seperated list of the origins of internal services that would communicate with this service"
     }
   ]
 }

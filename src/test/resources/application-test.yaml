@@ -15,12 +15,12 @@ logging:
   level:
     web: debug
     sql: error
-    '[org.springframework.security]': error
-    '[com.hangout.core]': trace
+    "[org.springframework.security]": error
+    "[com.hangout.core]": trace
 
 hangout:
   jwt:
-    secretKey: 
+    secretKey:
       access: u_UGqxTQ2BvLbhkeo2B0QV-Hq6GqWzPyqwgSrXLgL7JCtp6SXWU9L1BKjEDSStAb2sZdy0iKrLU6z8MIEZze3CbhjXQfDUW7WtMEpv1yEmWdPoijGtiVLELF-5yaUYgVVrPVKNFv7xqIVH5sDl0VQ6El4d0v013qJ0j75UyZQtvGHjUMEmTE0H7iMf2yC19HBAGKzuwraZvNzLUStzLLcbRA6jlrnWqGyHfVBkoCjR2-Dtzom84yI20wk44xxC7NdrII40fZobLq856lQxewOCMXPG4U6sx_XuFwon9p1n0I-rrItcMj_lQHhPf-Z2lXnM05_DlXcu7LE4v2NdUjUw
       refresh: kTYpg95oeqgnBhfi16DYSe2NT2T6kXPDKGrLeXpSA2rc7Jltt32AtYGPdmsYFoKt0H2_dJj8RPgbP3UGzD6ONSDJOWbbMvSU1MyNDM2xj5ncv2oN1iewNXz6gEyTdeuR3IolmGnPBPFVZR78is6MnS7W7WBpRvQCoaes9l7GhMHf6MhtX4nstm9LkTUx5-MQw4Tg5XTgo82FApVcg1x9hvDno6WTci_gJ9874xsAi5wg9V15cXFTesJ3GJfGf4NTkX9SqqAVG_D08oLOXFAXjvLDYVrl_O_9JMyCBgVEyMV81UMw8v72nYGAfDPy2uH3nTUOTXA4qlijAXOFGxV7kg
   notification-service:
@@ -29,3 +29,5 @@ hangout:
     url: http://localhost:4317
   log:
     path: /home/soumalya/Development/Hangout/core-services/hangout-auth-service/logs
+  internal-services:
+    origin: "localhost"

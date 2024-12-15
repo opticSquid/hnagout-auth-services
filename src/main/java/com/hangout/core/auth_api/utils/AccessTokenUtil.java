@@ -3,6 +3,7 @@ package com.hangout.core.auth_api.utils;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.crypto.SecretKey;
 
@@ -23,8 +24,9 @@ public class AccessTokenUtil implements JwtUtil {
 
     @Override
     @Observed(name = "generate-token", contextualName = "access-token")
-    public String generateToken(String username) {
+    public String generateToken(String username, UUID deviceId) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("deviceId", deviceId);
         // expiration is 5 minutes
         return createToken(username, claims, 1000 * 60 * 5);
     }
@@ -32,10 +34,15 @@ public class AccessTokenUtil implements JwtUtil {
     @Override
     @Observed(name = "validate-token", contextualName = "access-token")
     public Boolean validateToken(String token) {
-        log.info("Validating access token");
-        Date expirationTime = this.extractAllClaims(token).getExpiration();
-        // check if the expirtation is in past of current instant
-        return !expirationTime.before(new Date());
+        log.debug("Validating access token: {}", token);
+        if (!token.isEmpty()) {
+            Date expirationTime = this.extractAllClaims(token).getExpiration();
+            log.debug("token expiration: {}", expirationTime);
+            // check if the expirtation is in past of current instant
+            return !expirationTime.before(new Date());
+        } else {
+            return false;
+        }
     }
 
     @Override
@@ -49,6 +56,12 @@ public class AccessTokenUtil implements JwtUtil {
     @Observed(name = "get-username", contextualName = "access-token")
     public String getUsername(String token) {
         return extractAllClaims(token).getSubject();
+    }
+
+    @Override
+    @Observed(name = "get-device-id", contextualName = "access-token")
+    public UUID getDeviceId(String token) {
+        return UUID.fromString((String) extractAllClaims(token).getOrDefault("deviceId", null));
     }
 
     private SecretKey getSigningKey() {
@@ -79,4 +92,5 @@ public class AccessTokenUtil implements JwtUtil {
                 .parseSignedClaims(token)
                 .getPayload();
     }
+
 }
