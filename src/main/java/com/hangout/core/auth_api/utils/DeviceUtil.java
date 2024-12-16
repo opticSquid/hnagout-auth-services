@@ -32,9 +32,9 @@ public class DeviceUtil {
         weights.put("userAgent", 10.0);
         weights.put("country", 9.0);
         weights.put("timeZone", 8.0);
-        weights.put("region", 7.0);
+        weights.put("region", 8.0);
         weights.put("isp", 4.0);
-        weights.put("ip", 2.0);
+        weights.put("ip", 1.0);
 
     }
 

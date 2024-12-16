@@ -3,6 +3,7 @@ package com.hangout.core.auth_api.service;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,7 +96,7 @@ class LoginService {
 
     private Device getUserDevice(DeviceDetails deviceDetails, User user) {
         Device currentDevice = deviceUtils.getDevice(deviceDetails, user);
-        Optional<Device> deviceFromDb = this.deviceRepo.findDevice(deviceDetails.screenWidth(),
+        List<Device> deviceFromDb = this.deviceRepo.findAllMatchingDevices(deviceDetails.screenWidth(),
                 deviceDetails.screenHeight(), deviceDetails.os(), deviceDetails.userAgent(), currentDevice.getCountry(),
                 user.getUserId());
         if (deviceFromDb.isPresent()
