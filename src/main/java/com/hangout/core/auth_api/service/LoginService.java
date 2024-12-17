@@ -96,12 +96,27 @@ class LoginService {
 
     private Device getUserDevice(DeviceDetails deviceDetails, User user) {
         Device currentDevice = deviceUtils.getDevice(deviceDetails, user);
-        List<Device> deviceFromDb = this.deviceRepo.findAllMatchingDevices(deviceDetails.screenWidth(),
+        List<Device> similarDevices = this.deviceRepo.findAllMatchingDevices(deviceDetails.screenWidth(),
                 deviceDetails.screenHeight(), deviceDetails.os(), deviceDetails.userAgent(), currentDevice.getCountry(),
                 user.getUserId());
-        if (deviceFromDb.isPresent()
-                && this.deviceUtils.calculateDeviceSimilarity(currentDevice, deviceFromDb.get()) >= 70.0) {
-            return deviceFromDb.get();
+        if (!similarDevices.isEmpty()) {
+            Device mostSimilarDevice = currentDevice;
+            Double maxSimilarityScore = 0.00;
+            for (Device deviceFromDb : similarDevices) {
+                Double similarityScore = this.deviceUtils.calculateDeviceSimilarity(currentDevice, deviceFromDb);
+                if (similarityScore > maxSimilarityScore) {
+                    maxSimilarityScore = similarityScore;
+                    mostSimilarDevice = deviceFromDb;
+                }
+            }
+            if (maxSimilarityScore > 90.00) {
+                mostSimilarDevice.setIsp(currentDevice.getLastReportedIsp());
+                mostSimilarDevice.setIp(currentDevice.getLastReportedIp());
+                this.deviceRepo.save(mostSimilarDevice);
+                return mostSimilarDevice;
+            } else {
+                throw new UnIndentifiedDeviceException("Device was never used by user");
+            }
         } else {
             throw new UnIndentifiedDeviceException("Device was never used by user");
         }

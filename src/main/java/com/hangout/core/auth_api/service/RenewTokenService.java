@@ -68,14 +68,8 @@ class RenewTokenService {
         ZonedDateTime accessTokenExpiryTime = this.accessTokenUtil.getExpiresAt(newAccessToken).toInstant()
                 .atZone(ZoneOffset.UTC);
         ZonedDateTime refreshTokenExpiryTime;
-        if (device.getIsTrusted()) {
-            refreshToken = latestAccess.getRefreshToken();
-            refreshTokenExpiryTime = latestAccess.getRefreshTokenExpiryTime();
-        } else {
-            refreshToken = this.refreshTokenUtil.generateTokenShortTerm(username, deviceId);
-            refreshTokenExpiryTime = this.refreshTokenUtil.getExpiresAt(refreshToken).toInstant()
-                    .atZone(ZoneOffset.UTC);
-        }
+        refreshToken = latestAccess.getRefreshToken();
+        refreshTokenExpiryTime = latestAccess.getRefreshTokenExpiryTime();
         Action newAction;
         if (latestAccess.getAccessToken() == newAccessToken) {
             newAction = Action.PREMATURE_TOKEN_RENEW;
@@ -142,9 +136,11 @@ class RenewTokenService {
             User user) {
         Device currentDevice = this.deviceUtil.getDevice(incomingDeviceDetails, user);
         Optional<Device> deviceFromDb = this.deviceRepo.findById(incomingDeviceId);
-        log.debug("device similarity:{}", this.deviceUtil.calculateDeviceSimilarity(currentDevice, deviceFromDb.get()));
         if (deviceFromDb.isPresent()
-                && this.deviceUtil.calculateDeviceSimilarity(currentDevice, deviceFromDb.get()) >= 70.0) {
+                && this.deviceUtil.calculateDeviceSimilarity(currentDevice, deviceFromDb.get()) > 90.0) {
+            deviceFromDb.get().setIsp(currentDevice.getLastReportedIsp());
+            deviceFromDb.get().setIp(currentDevice.getLastReportedIp());
+            this.deviceRepo.save(deviceFromDb.get());
             return deviceFromDb.get();
         } else {
             throw new UnIndentifiedDeviceException("Device being used is different from what was used to login");
