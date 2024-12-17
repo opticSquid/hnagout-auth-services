@@ -28,14 +28,14 @@ public class Device {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID deviceId;
     private String os;
-    private Integer screenWidth;
     private Integer screenHeight;
+    private Integer screenWidth;
     private String userAgent;
     private String country;
     private String region;
     private String timeZone;
-    private String isp;
-    private String ip;
+    private String lastReportedIsp;
+    private String lastReportedIp;
     private Boolean isTrusted;
     @ManyToOne
     @JoinColumn(name = "userId", nullable = false)
@@ -51,9 +51,9 @@ public class Device {
         this.userAgent = deviceDetails.userAgent();
         this.country = ipDetails.country();
         this.region = ipDetails.region();
-        this.timeZone = ipDetails.timeZone();
-        this.isp = ipDetails.isp();
-        this.ip = ipDetails.query();
+        this.timeZone = ipDetails.timezone();
+        this.lastReportedIsp = ipDetails.isp();
+        this.lastReportedIp = ipDetails.query();
         this.user = user;
         this.isTrusted = trusted;
     }
@@ -67,5 +67,13 @@ public class Device {
 
     public void trustDevice() {
         this.isTrusted = true;
+    }
+
+    public void setIsp(String isp) {
+        this.lastReportedIsp = isp;
+    }
+
+    public void setIp(String ip) {
+        this.lastReportedIp = ip;
     }
 }

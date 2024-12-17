@@ -14,6 +14,7 @@ import com.hangout.core.auth_api.entity.AccessRecord;
 import com.hangout.core.auth_api.entity.Action;
 import com.hangout.core.auth_api.entity.Device;
 import com.hangout.core.auth_api.entity.User;
+import com.hangout.core.auth_api.exceptions.AlreadyTrustedDeviceException;
 import com.hangout.core.auth_api.exceptions.UnIndentifiedDeviceException;
 import com.hangout.core.auth_api.exceptions.UserNotFoundException;
 import com.hangout.core.auth_api.repository.AccessRecordRepo;
@@ -81,10 +82,18 @@ class TrustDeviceService {
         Device currentDevice = this.deviceUtil.getDevice(incomingDeviceDetails, user);
         Optional<Device> deviceFromDb = this.deviceRepo.findById(incomingDeviceId);
         if (deviceFromDb.isPresent()
-                && this.deviceUtil.calculateDeviceSimilarity(currentDevice, deviceFromDb.get()) >= 70.0) {
-            return deviceFromDb.get();
+                && !deviceFromDb.get().getIsTrusted()) {
+            if (this.deviceUtil.calculateDeviceSimilarity(currentDevice, deviceFromDb.get()) > 90.0) {
+                deviceFromDb.get().setIsp(currentDevice.getLastReportedIsp());
+                deviceFromDb.get().setIp(currentDevice.getLastReportedIp());
+                return deviceFromDb.get();
+            } else {
+                throw new UnIndentifiedDeviceException("Device being used is different from what was used to login");
+            }
+
         } else {
-            throw new UnIndentifiedDeviceException("Device being used is different from what was used to login");
+            throw new AlreadyTrustedDeviceException(
+                    "Either device is never used by user earlier or the device is already trusted");
         }
     }
 

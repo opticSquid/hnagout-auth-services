@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import com.hangout.core.auth_api.exceptions.UnIndentifiedDeviceException;
+import com.hangout.core.auth_api.exceptions.AlreadyTrustedDeviceException;
 import com.hangout.core.auth_api.exceptions.JwtNotValidException;
 import com.hangout.core.auth_api.exceptions.UnauthorizedAccessException;
 import com.hangout.core.auth_api.exceptions.UserNotFoundException;
@@ -39,9 +40,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 	@ExceptionHandler(UnIndentifiedDeviceException.class)
 	public ProblemDetail exceptionHandler(UnIndentifiedDeviceException ex) {
-		ProblemDetail probelm = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
-		probelm.setTitle("Untrusted Device");
-		return probelm;
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
+		problem.setTitle("Untrusted Device");
+		return problem;
+	}
+
+	@ExceptionHandler(AlreadyTrustedDeviceException.class)
+	public ProblemDetail exceptionHandler(AlreadyTrustedDeviceException ex) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+		problem.setTitle("Already Trusted Device");
+		return problem;
 	}
 
 	// Spring generated exceptions
