@@ -32,8 +32,8 @@ spring:
 
 logging:
   level:
-    web: debug
-    sql: debug
+    web: error
+    sql: error
     "[org.springframework.security]": error
     "[com.hangout.core]": trace
     # traceID and spanId are predefined MDC keys - we want the logs to include them
