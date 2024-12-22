@@ -38,7 +38,7 @@ class TokenValidityCheckerService {
         UUID deviceId = this.accessTokenUtil.getDeviceId(acessToken);
         User user = this.findEnabledUser(username);
         Device device = findDevice(user.getUserId(), deviceId);
-        return new PublicUserDetails(username, user.getRole(), device.getIsTrusted());
+        return new PublicUserDetails(user.getUserId(), user.getRole(), device.getIsTrusted());
 
     }
 
