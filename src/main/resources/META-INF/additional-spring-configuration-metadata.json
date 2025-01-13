@@ -44,6 +44,11 @@
       "name": "hangout.internal-services.origin",
       "type": "java.util.String",
       "description": "The comma seperated list of the origins of internal services that would communicate with this service"
+    },
+    {
+      "name": "hangout.client.origin",
+      "type": "java.lang.String",
+      "description": "The comma separated list of the origins of the list of user facing clients"
     }
   ]
 }

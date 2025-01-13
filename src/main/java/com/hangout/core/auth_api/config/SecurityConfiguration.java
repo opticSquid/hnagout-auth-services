@@ -20,6 +20,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.hangout.core.auth_api.entity.Roles;
@@ -42,19 +44,21 @@ public class SecurityConfiguration {
 	@Autowired
 	PasswordEncoder passwordEncoder;
 	@Value("${hangout.internal-services.origin}")
-	private String internalServiceOrigin;
+	private String internalServicesOrigins;
+	@Value("${hangout.client.origin}")
+	private String clientOrigins;
 
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http)
 			throws Exception {
 		http
-				.cors(c -> c.configurationSource(corsConfigurationSource()))
+				.cors(c -> c.configurationSource(myCorsConfigurationSource()))
 				.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers("/v1/user/**")
 						.authenticated()
 						.requestMatchers("/v1/admin/**").hasRole(Roles.ADMIN.name())
-						.requestMatchers(HttpMethod.OPTIONS).permitAll() // Allow OPTIONS for CORS preflight
+						.requestMatchers(CorsUtils::isPreFlightRequest).permitAll() // Allow OPTIONS for CORS preflight
 						.anyRequest().permitAll() // All other requests are permitted
 				)
 				.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
@@ -75,18 +79,31 @@ public class SecurityConfiguration {
 		return auth.getAuthenticationManager();
 	}
 
-	UrlBasedCorsConfigurationSource corsConfigurationSource() {
-		CorsConfiguration configuration = new CorsConfiguration();
+	CorsConfigurationSource myCorsConfigurationSource() {
+		CorsConfiguration clientConfiguration = new CorsConfiguration();
+		CorsConfiguration internalServiceConfiguration = new CorsConfiguration();
 		// parsing comma seperated string to a list
-		List<String> allowedOrigins = Arrays.stream(internalServiceOrigin.split(",")).map(String::trim)
+		List<String> allowedClientOriginList = Arrays.stream(clientOrigins.split(",")).map(String::trim)
 				.collect(Collectors.toList());
-		log.info("Internal Service origins: {}", allowedOrigins);
-		configuration.setAllowedOrigins(allowedOrigins);
-		configuration.setAllowedMethods(Arrays.asList("POST"));
+		List<String> allowedInternalOriginsList = Arrays.stream(internalServicesOrigins.split(",")).map(String::trim)
+				.collect(Collectors.toList());
+		log.info("Allowed client origins: {}, allowed internal service origins: {}", clientOrigins,
+				allowedInternalOriginsList);
+		clientConfiguration.setAllowedOriginPatterns(allowedClientOriginList);
+		internalServiceConfiguration.setAllowedOriginPatterns(allowedInternalOriginsList);
+		clientConfiguration.setAllowedHeaders(Arrays.asList("*"));
+		internalServiceConfiguration.setAllowedHeaders(Arrays.asList("*"));
+		clientConfiguration.setAllowedMethods(Arrays.asList(HttpMethod.POST.name(), HttpMethod.OPTIONS.name()));
+		internalServiceConfiguration
+				.setAllowedMethods(Arrays.asList(HttpMethod.POST.name(), HttpMethod.OPTIONS.name()));
+		clientConfiguration.setAllowCredentials(false);
+		internalServiceConfiguration.setAllowCredentials(false);
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		source.setCorsConfigurations(Map.of("/v1/internal/**", configuration,
-				"/v1/admin/**", configuration));
-		// source.registerCorsConfiguration("/v1/internal/**", configuration);
+		source.setCorsConfigurations(Map.of(
+				"/v1/public/**", clientConfiguration,
+				"/v1/user/**", clientConfiguration,
+				"/v1/internal/**", internalServiceConfiguration,
+				"/v1/admin/**", internalServiceConfiguration));
 		return source;
 	}
 }
