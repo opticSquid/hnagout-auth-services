@@ -1,10 +1,10 @@
 server:
   port: 5011
   servlet:
-    context-path: /auth
+    context-path: /auth-api
 spring:
   application:
-    name: hangout-auth-service
+    name: hangout-auth-api
   datasource:
     driverClassName: org.postgresql.Driver
     url: jdbc:postgresql://${DB_URL}/${DB_NAME}
@@ -25,10 +25,6 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-    # properties:
-    #   security.protocol: ${KAFKA_SECURITY_PROTOCOL}
-    #   sasl.mechanism: ${KAFKA_SASL_MECHANISM}
-    #   sasl.jaas.config: org.apache.kafka.common.security.scram.ScramLoginModule required username="${KAFKA_USER}" password="$(kubectl get secret kafka-user-passwords --namespace persistance -o jsonpath='{.data.client-passwords}' | base64 -d | cut -d , -f 1)";
 
 logging:
   level:
@@ -89,3 +85,5 @@ hangout:
     path: ${LOG_DIR}
   internal-services:
     origin: ${INTERNAL_SERVICES_ORIGIN}
+  client:
+    origin: ${CLIENT_ORIGIN}
