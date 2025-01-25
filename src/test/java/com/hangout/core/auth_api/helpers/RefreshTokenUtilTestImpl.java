@@ -1,4 +1,4 @@
-package com.hangout.core.auth_api.utils;
+package com.hangout.core.auth_api.helpers;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -10,6 +10,8 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.hangout.core.auth_api.utils.JwtUtil;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -17,13 +19,16 @@ import io.jsonwebtoken.security.Keys;
 import io.micrometer.observation.annotation.Observed;
 
 @Component
-public class RefreshTokenUtil implements JwtUtil {
+public class RefreshTokenUtilTestImpl implements JwtUtil {
     @Value("${hangout.jwt.refresh-token.secret}")
     private String REFRESH_SECRET_KEY;
-    @Value("${hangout.jwt.refresh-token.long-term-expiry}")
     private long LONG_TERM_EXPIRY;
-    @Value("${hangout.jwt.refresh-token.short-term-expiry}")
     private long SHORT_TERM_EXPIRY;
+
+    public void setExpiries(long longTerm, long shortTerm) {
+        this.LONG_TERM_EXPIRY = longTerm;
+        this.SHORT_TERM_EXPIRY = shortTerm;
+    }
 
     @Override
     @Observed(name = "generate-token", contextualName = "refresh-token", lowCardinalityKeyValues = { "tenure", "long" })

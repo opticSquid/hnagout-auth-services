@@ -1,14 +1,29 @@
 {
   "properties": [
     {
-      "name": "hangout.jwt.secretKey.access",
-      "type": "java.lang.String",
-      "description": "Signing secret key for issued access tokens"
-    },
-    {
-      "name": "hangout.jwt.secretKey.refresh",
+      "name": "hangout.jwt.access-token.secret",
       "type": "java.lang.String",
       "description": "Signing secret key for issued refresh tokens"
+    },
+    {
+      "name": "hangout.jwt.access-token.expiry",
+      "type": "java.lang.Long",
+      "description": "Expiry time for access tokens in ms"
+    },
+    {
+      "name": "hangout.jwt.refresh-token.secret",
+      "type": "java.lang.String",
+      "description": "Signing secret key for issued refresh tokens"
+    },
+    {
+      "name": "hangout.jwt.refresh-token.long-term-expiry",
+      "type": "java.lang.Long",
+      "description": "Expiry time for long term refresh tokens in ms"
+    },
+    {
+      "name": "hangout.jwt.refresh-token.short-term-expiry",
+      "type": "java.lang.Long",
+      "description": "Expiry time for short term refresh tokens in ms"
     },
     {
       "name": "hangout.kafka.topic.verification-mail",

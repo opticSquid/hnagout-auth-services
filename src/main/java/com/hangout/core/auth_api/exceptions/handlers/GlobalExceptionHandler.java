@@ -13,6 +13,7 @@ import com.hangout.core.auth_api.exceptions.JwtNotValidException;
 import com.hangout.core.auth_api.exceptions.UnauthorizedAccessException;
 import com.hangout.core.auth_api.exceptions.UserNotFoundException;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 
 @RestControllerAdvice
@@ -28,6 +29,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	public ProblemDetail exceptionHandler(JwtNotValidException ex) {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
 		problem.setTitle("Token is invalid");
+		return problem;
+	}
+
+	@ExceptionHandler(ExpiredJwtException.class)
+	public ProblemDetail exceptionHandler(ExpiredJwtException ex) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+		problem.setTitle("Token has expired");
 		return problem;
 	}
 
