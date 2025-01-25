@@ -72,9 +72,13 @@ hangout:
       verification-mail: account-verification
       activation-mail: account-activation
   jwt:
-    secretKey:
-      access: ${ACCESS_TOKEN_SECRET}
-      refresh: ${REFRESH_TOKEN_SECRET}
+    access-token:
+      secret: ${ACCESS_TOKEN_SECRET}
+      expiry: ${ACCESS_TOKEN_EXPIRY}
+    refresh-token:
+      secret: ${REFRESH_TOKEN_SECRET}
+      long-term-expiry: ${REFRESH_TOKEN_LONG_TERM_EXPIRY}
+      short-term-expiry: ${REFRESH_TOKEN_SHORT_TERM_EXPIRY}
   notification-service:
     url: ${NOTIFICATION_SERVICE}
   ip-api:

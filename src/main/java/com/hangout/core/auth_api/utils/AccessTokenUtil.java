@@ -19,8 +19,10 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class AccessTokenUtil implements JwtUtil {
-    @Value("${hangout.jwt.secretKey.access}")
+    @Value("${hangout.jwt.access-token.secret}")
     private String ACCESS_SECRET_KEY;
+    @Value("${hangout.jwt.access-token.expiry}")
+    private Long EXPIRY_TIME;
 
     @Override
     @Observed(name = "generate-token", contextualName = "access-token")
@@ -28,7 +30,7 @@ public class AccessTokenUtil implements JwtUtil {
         Map<String, Object> claims = new HashMap<>();
         claims.put("deviceId", deviceId);
         // expiration is 5 minutes
-        return createToken(username, claims, 1000 * 60 * 5);
+        return createToken(username, claims, EXPIRY_TIME);
     }
 
     @Override
