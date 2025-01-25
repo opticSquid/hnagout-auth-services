@@ -17,8 +17,12 @@ import io.micrometer.observation.annotation.Observed;
 
 @Component
 public class RefreshTokenUtil implements JwtUtil {
-    @Value("${hangout.jwt.secretKey.refresh}")
+    @Value("${hangout.jwt.refresh-token.secret}")
     private String REFRESH_SECRET_KEY;
+    @Value("${hangout.jwt.refresh-token.long-term-expiry}")
+    private Long LONG_TERM_EXPIRY;
+    @Value("${hangout.jwt.refresh-token.short-term-expiry}")
+    private Long SHORT_TERM_EXPIRY;
 
     @Override
     @Observed(name = "generate-token", contextualName = "refresh-token", lowCardinalityKeyValues = { "tenure", "long" })
@@ -26,7 +30,7 @@ public class RefreshTokenUtil implements JwtUtil {
         Map<String, Object> claims = new HashMap<>();
         claims.put("deviceId", deviceId);
         // expiration is 7 days
-        return createToken(username, claims, 1000 * 60 * 60 * 24 * 7);
+        return createToken(username, claims, LONG_TERM_EXPIRY);
     }
 
     @Observed(name = "generate-token", contextualName = "refresh-token", lowCardinalityKeyValues = { "tenure",
@@ -35,7 +39,7 @@ public class RefreshTokenUtil implements JwtUtil {
         Map<String, Object> claims = new HashMap<>();
         claims.put("deviceId", deviceId);
         // expiration is 10 minutes
-        return createToken(username, claims, 1000 * 60 * 10);
+        return createToken(username, claims, SHORT_TERM_EXPIRY);
     }
 
     @Override
