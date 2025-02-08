@@ -16,12 +16,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
 @NoArgsConstructor
+@EqualsAndHashCode
 @Table(name = "devices")
 public class Device {
     @Id
@@ -31,12 +33,17 @@ public class Device {
     private Integer screenHeight;
     private Integer screenWidth;
     private String userAgent;
+    private String continent;
     private String country;
-    private String region;
     private String timeZone;
-    private String lastReportedIsp;
-    private String lastReportedIp;
-    private Boolean isTrusted;
+    private String regionName;
+    private String city;
+    private String isp;
+    private String asName;
+    private Boolean mobile;
+    private Boolean proxy;
+    private Boolean hosting;
+    private Boolean trusted;
     @ManyToOne
     @JoinColumn(name = "userId", nullable = false)
     private User user;
@@ -44,18 +51,23 @@ public class Device {
     private List<AccessRecord> accessRecords;
 
     public Device(DeviceDetails deviceDetails, IpDetails ipDetails,
-            User user, Boolean trusted) {
+            User user) {
         this.os = deviceDetails.os();
         this.screenWidth = deviceDetails.screenWidth();
         this.screenHeight = deviceDetails.screenHeight();
         this.userAgent = deviceDetails.userAgent();
+        this.continent = ipDetails.continent();
         this.country = ipDetails.country();
-        this.region = ipDetails.region();
         this.timeZone = ipDetails.timezone();
-        this.lastReportedIsp = ipDetails.isp();
-        this.lastReportedIp = ipDetails.query();
+        this.regionName = ipDetails.regionName();
+        this.city = ipDetails.city();
+        this.isp = ipDetails.isp();
+        this.asName = ipDetails.asname();
+        this.mobile = ipDetails.mobile();
+        this.proxy = ipDetails.proxy();
+        this.hosting = ipDetails.hosting();
         this.user = user;
-        this.isTrusted = trusted;
+        this.trusted = false;
     }
 
     public void addAccessRecord(AccessRecord accessRecord) {
@@ -66,14 +78,26 @@ public class Device {
     }
 
     public void trustDevice() {
-        this.isTrusted = true;
+        this.trusted = true;
     }
 
     public void setIsp(String isp) {
-        this.lastReportedIsp = isp;
+        this.isp = isp;
     }
 
-    public void setIp(String ip) {
-        this.lastReportedIp = ip;
+    public boolean isMobile() {
+        return this.mobile;
+    }
+
+    public boolean isProxy() {
+        return this.proxy;
+    }
+
+    public boolean isHosting() {
+        return this.hosting;
+    }
+
+    public boolean isTrusted() {
+        return this.trusted;
     }
 }

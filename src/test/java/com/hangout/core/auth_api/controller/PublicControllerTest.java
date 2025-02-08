@@ -171,7 +171,7 @@ public class PublicControllerTest {
         String password = "a1@bcdefgh456";
         User user = setupUser(userName, email, password);
         Device device = this.deviceUtil
-                .getDevice(new DeviceDetails("127.0.0.1", "ubuntu/linux", 1920, 1080, "hangout/test"), user);
+                .buildDeviceProfile(new DeviceDetails("127.0.0.1", "ubuntu/linux", 1920, 1080, "hangout/test"), user);
         device = this.deviceRepo.save(device);
         String accToken = this.accessTokenUtil.generateToken(userName, device.getDeviceId());
         ZonedDateTime accTokenExpiry = this.accessTokenUtil.getExpiresAt(accToken).toInstant().atZone(ZoneOffset.UTC);

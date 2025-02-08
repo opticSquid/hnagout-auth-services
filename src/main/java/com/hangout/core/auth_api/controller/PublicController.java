@@ -82,7 +82,8 @@ public class PublicController {
     }
 
     private DeviceDetails getDeviceDetails(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
+        String ip = request.getHeader("X-Forwarded-For") != null ? request.getHeader("X-Forwarded-For")
+                : request.getRemoteAddr();
         String os = request.getHeader("OS");
         Integer screenWidth = Integer.parseInt(request.getHeader("Screen-Width"));
         Integer screenHeight = Integer.parseInt(request.getHeader("Screen-Height"));
