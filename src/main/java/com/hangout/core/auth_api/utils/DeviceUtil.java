@@ -24,25 +24,26 @@ import lombok.extern.slf4j.Slf4j;
 public class DeviceUtil {
     private static final Map<String, Integer> WEIGHTS = new HashMap<>();
     private static Integer TOTALWEIGHT;
-    private static final Integer THRESHOLD = 15;
+    private static final Integer THRESHOLD = 90;
     @Autowired
     private RestClient restClient;
     @Value("${hangout.ip-api.url}")
     private String ipApi;
     static {
-        WEIGHTS.put("os", 9);
-        WEIGHTS.put("screen", 8);
-        WEIGHTS.put("userAgent", 7);
-        WEIGHTS.put("continent", 10);
-        WEIGHTS.put("country", 9);
-        WEIGHTS.put("timeZone", 6);
-        WEIGHTS.put("regionName", 6);
-        WEIGHTS.put("city", 5);
-        WEIGHTS.put("isp", 4);
-        WEIGHTS.put("asName", 4);
-        WEIGHTS.put("mobile", 9);
-        WEIGHTS.put("proxy", 9);
-        WEIGHTS.put("hosting", 9);
+        WEIGHTS.put("os", 9); // High impact (should breach threshold alone)
+        WEIGHTS.put("screen", 6); // Moderate impact, screen sizes rarely change significantly
+        WEIGHTS.put("userAgent", 9); // High impact (should breach threshold alone)
+        WEIGHTS.put("continent", 5); // Should reduce similarity, but not alone
+        WEIGHTS.put("country", 5); // Should reduce similarity, but not alone
+        WEIGHTS.put("timeZone", 4); // Lesser impact, as users travel
+        WEIGHTS.put("regionName", 4); // Lesser impact, similar to country
+        WEIGHTS.put("city", 3); // Should not contribute heavily
+        WEIGHTS.put("isp", 3); // ISPs change frequently
+        WEIGHTS.put("asName", 3); // Autonomous systems change often
+        WEIGHTS.put("mobile", 9); // If changed, should breach threshold
+        WEIGHTS.put("proxy", 9); // If changed, should breach threshold
+        WEIGHTS.put("hosting", 9); // If changed, should breach threshold
+
         TOTALWEIGHT = WEIGHTS.values().stream().mapToInt(Integer::intValue).sum();
     }
 
