@@ -20,6 +20,7 @@ import com.hangout.core.auth_api.entity.AccessRecord;
 import com.hangout.core.auth_api.entity.Action;
 import com.hangout.core.auth_api.entity.Device;
 import com.hangout.core.auth_api.entity.User;
+import com.hangout.core.auth_api.exceptions.DeviceProfileException;
 import com.hangout.core.auth_api.exceptions.UnIndentifiedDeviceException;
 import com.hangout.core.auth_api.exceptions.UnauthorizedAccessException;
 import com.hangout.core.auth_api.repository.AccessRecordRepo;
@@ -51,7 +52,7 @@ class LoginService {
     @Autowired
     private DeviceRepo deviceRepo;
     @Autowired
-    private DeviceUtil deviceUtils;
+    private DeviceUtil deviceUtil;
 
     @Observed(name = "login", contextualName = "login-service")
     @Transactional
@@ -70,7 +71,7 @@ class LoginService {
             // check if the current device is a trusted device or not
             try {
                 Device device = getUserDevice(deviceDetails, user);
-                if (device.getIsTrusted()) {
+                if (device.getTrusted()) {
                     // get the last login/logout attempt by the user in current device
                     Optional<AccessRecord> session = this.accessRecordRepo.getLastEntryRecord(user.getUserId(),
                             device.getDeviceId());
@@ -83,7 +84,7 @@ class LoginService {
             } catch (UnIndentifiedDeviceException ex) {
                 log.info("user logging in a new device");
                 // create a new device object for saving
-                Device newUntrustedDevice = this.deviceUtils.getDevice(deviceDetails, user);
+                Device newUntrustedDevice = this.deviceUtil.buildDeviceProfile(deviceDetails, user);
                 return userLoggingInAnUnIdentifiedDevice(newUntrustedDevice, user);
             }
         }
@@ -95,31 +96,40 @@ class LoginService {
     }
 
     private Device getUserDevice(DeviceDetails deviceDetails, User user) {
-        Device currentDevice = deviceUtils.getDevice(deviceDetails, user);
-        List<Device> similarDevices = this.deviceRepo.findAllMatchingDevices(deviceDetails.screenWidth(),
-                deviceDetails.screenHeight(), deviceDetails.os(), deviceDetails.userAgent(), currentDevice.getCountry(),
-                user.getUserId());
-        if (!similarDevices.isEmpty()) {
-            Device mostSimilarDevice = currentDevice;
-            Double maxSimilarityScore = 0.00;
-            for (Device deviceFromDb : similarDevices) {
-                Double similarityScore = this.deviceUtils.calculateDeviceSimilarity(currentDevice, deviceFromDb);
-                if (similarityScore > maxSimilarityScore) {
-                    maxSimilarityScore = similarityScore;
-                    mostSimilarDevice = deviceFromDb;
-                }
-            }
-            if (maxSimilarityScore > 90.00) {
-                mostSimilarDevice.setIsp(currentDevice.getLastReportedIsp());
-                mostSimilarDevice.setIp(currentDevice.getLastReportedIp());
-                this.deviceRepo.save(mostSimilarDevice);
-                return mostSimilarDevice;
-            } else {
-                throw new UnIndentifiedDeviceException("Device was never used by user");
-            }
-        } else {
+        // Build the current device profile
+        Device currentDevice = deviceUtil.buildDeviceProfile(deviceDetails, user);
+        if (currentDevice == null) {
+            throw new DeviceProfileException("Failed to build device profile");
+        }
+
+        // Fetch similar devices from the database
+        List<Device> similarDevices = deviceRepo.findAllMatchingDevices(
+                deviceDetails.os(), deviceDetails.screenWidth(), deviceDetails.screenHeight(),
+                deviceDetails.userAgent(), currentDevice.getContinent(),
+                currentDevice.getCountry(), user.getUserId());
+
+        // If no similar devices are found, it's an unidentified device
+        if (similarDevices.isEmpty()) {
             throw new UnIndentifiedDeviceException("Device was never used by user");
         }
+
+        // Check if the current device is already recognized
+        Optional<Device> matchedDevice = similarDevices.stream()
+                .filter(dbDevice -> !DeviceUtil.isNewDevice(dbDevice, currentDevice))
+                .findFirst();
+
+        if (matchedDevice.isPresent()) {
+            // Update ISP if necessary and save the device
+            Device deviceFromDb = matchedDevice.get();
+            if (!deviceFromDb.getIsp().equals(currentDevice.getIsp())) {
+                deviceFromDb.setIsp(currentDevice.getIsp());
+                deviceRepo.save(deviceFromDb);
+            }
+            return deviceFromDb;
+        }
+
+        // If no match was found, it's an unidentified device
+        throw new UnIndentifiedDeviceException("Device was never used by user");
     }
 
     private AuthResponse userLoggingInToTrustedDevice(AccessRecord session,

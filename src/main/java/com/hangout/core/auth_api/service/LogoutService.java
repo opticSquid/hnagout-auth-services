@@ -14,6 +14,7 @@ import com.hangout.core.auth_api.entity.Action;
 import com.hangout.core.auth_api.entity.Device;
 import com.hangout.core.auth_api.entity.User;
 import com.hangout.core.auth_api.exceptions.UnauthorizedAccessException;
+import com.hangout.core.auth_api.exceptions.DeviceProfileException;
 import com.hangout.core.auth_api.exceptions.UnIndentifiedDeviceException;
 import com.hangout.core.auth_api.repository.AccessRecordRepo;
 import com.hangout.core.auth_api.repository.DeviceRepo;
@@ -56,16 +57,32 @@ class LogoutService {
         }
     }
 
-    private Device checkIfTheDeviceIsSameAsUsedForLogin(UUID incomingDeviceId, DeviceDetails incomingDeviceDetails,
+    private Device checkIfTheDeviceIsSameAsUsedForLogin(UUID incomingDeviceId,
+            DeviceDetails incomingDeviceDetails,
             User user) {
-        Device currentDevice = this.deviceUtil.getDevice(incomingDeviceDetails, user);
-        Optional<Device> deviceFromDb = this.deviceRepo.findById(incomingDeviceId);
-        log.debug("device similarity:{}", this.deviceUtil.calculateDeviceSimilarity(currentDevice, deviceFromDb.get()));
-        if (deviceFromDb.isPresent()
-                && this.deviceUtil.calculateDeviceSimilarity(currentDevice, deviceFromDb.get()) >= 70.0) {
-            return deviceFromDb.get();
-        } else {
+        // Build the device profile based on incoming details
+        Device currentDevice = deviceUtil.buildDeviceProfile(incomingDeviceDetails, user);
+        if (currentDevice == null) {
+            throw new DeviceProfileException("Failed to build device profile");
+        }
+
+        // Fetch the existing device from the database
+        Optional<Device> deviceFromDbOpt = deviceRepo.findById(incomingDeviceId);
+
+        if (deviceFromDbOpt.isEmpty()) {
+            log.warn("No matching device found in the database for ID: {}", incomingDeviceId);
             throw new UnIndentifiedDeviceException("Device being used is different from what was used to login");
         }
+
+        Device deviceFromDb = deviceFromDbOpt.get();
+        boolean isKnownDevice = !DeviceUtil.isNewDevice(deviceFromDb, currentDevice);
+
+        log.debug("Device ID: {} | Is known device: {}", incomingDeviceId, isKnownDevice);
+
+        if (!isKnownDevice) {
+            throw new UnIndentifiedDeviceException("Device being used is different from what was used to login");
+        }
+
+        return deviceFromDb;
     }
 }

@@ -12,10 +12,14 @@ import org.springframework.data.repository.query.Param;
 import com.hangout.core.auth_api.entity.Device;
 
 public interface DeviceRepo extends JpaRepository<Device, UUID> {
-    @Query(value = "select * from devices where screen_width = :screenWidth and screen_height = :screenHeight and os = :os and user_agent = :userAgent and country = :country and user_id = :userId", nativeQuery = true)
-    List<Device> findAllMatchingDevices(@Param("screenWidth") Integer screenWidth,
+    @Query(value = "SELECT * FROM devices WHERE os = :os AND screen_width = :screenWidth AND screen_height = :screenHeight AND user_agent = :userAgent AND continent = :continent AND country = :country AND user_id = :userId", nativeQuery = true)
+    List<Device> findAllMatchingDevices(
+            @Param("os") String os,
+            @Param("screenWidth") Integer screenWidth,
             @Param("screenHeight") Integer screenHeight,
-            @Param("os") String os, @Param("userAgent") String userAgent, @Param("country") String country,
+            @Param("userAgent") String userAgent,
+            @Param("continent") String continent,
+            @Param("country") String country,
             @Param("userId") BigInteger userId);
 
     @Query(value = "select * from devices where device_id = :deviceId and user_id = :userId", nativeQuery = true)

@@ -15,6 +15,7 @@ import com.hangout.core.auth_api.entity.Action;
 import com.hangout.core.auth_api.entity.Device;
 import com.hangout.core.auth_api.entity.User;
 import com.hangout.core.auth_api.exceptions.AlreadyTrustedDeviceException;
+import com.hangout.core.auth_api.exceptions.DeviceProfileException;
 import com.hangout.core.auth_api.exceptions.UnIndentifiedDeviceException;
 import com.hangout.core.auth_api.exceptions.UserNotFoundException;
 import com.hangout.core.auth_api.repository.AccessRecordRepo;
@@ -53,19 +54,24 @@ class TrustDeviceService {
         UUID deviceId = this.accessTokenUtil.getDeviceId(accessToken);
         User user = findEnabledUserFromDb(username);
         Device device = checkIfTheDeviceIsSameAsUsedForLogin(deviceId, deviceDetails, user);
-        AuthResponse issuedTokens = issueLongTermTokens(user.getUsername(), deviceId);
-        Date accessTokenExpiryTime = this.accessTokenUtil.getExpiresAt(issuedTokens.accessToken());
-        Date refreshTokenExpiryTime = this.refreshTokenUtil.getExpiresAt(issuedTokens.refreshToken());
-        AccessRecord accessRecord = this.accessRecordRepo
-                .save(new AccessRecord(issuedTokens.accessToken(), accessTokenExpiryTime, issuedTokens.refreshToken(),
-                        refreshTokenExpiryTime, Action.TRUSTED_SESSION_START, device,
-                        user));
-        device.trustDevice();
-        device.addAccessRecord(accessRecord);
-        this.deviceRepo.save(device);
-        user.addAccessRecord(accessRecord);
-        this.userRepo.save(user);
-        return issuedTokens;
+        if (device.isTrusted()) {
+            throw new AlreadyTrustedDeviceException("Device is already trusted by the user.");
+        } else {
+            AuthResponse issuedTokens = issueLongTermTokens(user.getUsername(), deviceId);
+            Date accessTokenExpiryTime = this.accessTokenUtil.getExpiresAt(issuedTokens.accessToken());
+            Date refreshTokenExpiryTime = this.refreshTokenUtil.getExpiresAt(issuedTokens.refreshToken());
+            AccessRecord accessRecord = this.accessRecordRepo
+                    .save(new AccessRecord(issuedTokens.accessToken(), accessTokenExpiryTime,
+                            issuedTokens.refreshToken(),
+                            refreshTokenExpiryTime, Action.TRUSTED_SESSION_START, device,
+                            user));
+            device.trustDevice();
+            device.addAccessRecord(accessRecord);
+            this.deviceRepo.save(device);
+            user.addAccessRecord(accessRecord);
+            this.userRepo.save(user);
+            return issuedTokens;
+        }
     }
 
     private User findEnabledUserFromDb(String username) {
@@ -79,22 +85,30 @@ class TrustDeviceService {
 
     private Device checkIfTheDeviceIsSameAsUsedForLogin(UUID incomingDeviceId, DeviceDetails incomingDeviceDetails,
             User user) {
-        Device currentDevice = this.deviceUtil.getDevice(incomingDeviceDetails, user);
-        Optional<Device> deviceFromDb = this.deviceRepo.findById(incomingDeviceId);
-        if (deviceFromDb.isPresent()
-                && !deviceFromDb.get().getIsTrusted()) {
-            if (this.deviceUtil.calculateDeviceSimilarity(currentDevice, deviceFromDb.get()) > 90.0) {
-                deviceFromDb.get().setIsp(currentDevice.getLastReportedIsp());
-                deviceFromDb.get().setIp(currentDevice.getLastReportedIp());
-                return deviceFromDb.get();
-            } else {
-                throw new UnIndentifiedDeviceException("Device being used is different from what was used to login");
-            }
-
-        } else {
-            throw new AlreadyTrustedDeviceException(
-                    "Either device is never used by user earlier or the device is already trusted");
+        // Build the device profile based on incoming details
+        Device currentDevice = deviceUtil.buildDeviceProfile(incomingDeviceDetails, user);
+        if (currentDevice == null) {
+            throw new DeviceProfileException("Failed to build device profile");
         }
+
+        // Fetch the existing device from the database
+        Optional<Device> deviceFromDbOpt = deviceRepo.findById(incomingDeviceId);
+
+        if (deviceFromDbOpt.isEmpty()) {
+            log.warn("No matching device found in the database for ID: {}", incomingDeviceId);
+            throw new UnIndentifiedDeviceException("Device being used is different from what was used to login");
+        }
+
+        Device deviceFromDb = deviceFromDbOpt.get();
+        boolean isKnownDevice = !DeviceUtil.isNewDevice(deviceFromDb, currentDevice);
+
+        log.debug("Device ID: {} | Is known device: {}", incomingDeviceId, isKnownDevice);
+
+        if (!isKnownDevice) {
+            throw new UnIndentifiedDeviceException("Device being used is different from what was used to login");
+        }
+
+        return deviceFromDb;
     }
 
     private AuthResponse issueLongTermTokens(String username, UUID deviceId) {

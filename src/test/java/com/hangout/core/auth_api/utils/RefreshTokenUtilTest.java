@@ -8,12 +8,17 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.context.ActiveProfiles;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.hangout.core.auth_api.helpers.RefreshTokenUtilTestImpl;
 
 import io.jsonwebtoken.ExpiredJwtException;
 
+@Testcontainers
 @SpringBootTest
 @ActiveProfiles("test")
 public class RefreshTokenUtilTest {
@@ -21,6 +26,10 @@ public class RefreshTokenUtilTest {
     private RefreshTokenUtil refreshTokenUtil;
     @Autowired
     private RefreshTokenUtilTestImpl refreshTokenUtilTestImpl;
+
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
 
     @Test
     void testValidateToken_passes_with_long_term_valid_token() {
